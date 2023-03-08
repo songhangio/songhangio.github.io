@@ -1,0 +1,779 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>再探Event Loop</title>
+    <url>/event-loop/</url>
+    <content><![CDATA[<h1 id="之前的认识"><a href="#之前的认识" class="headerlink" title="之前的认识"></a>之前的认识</h1><p>Javascript 将所有代码作为单个线程执行（意味着一次只发生一件事，只有一个调用的堆栈）；但是，利用某些数据结构，你可以伪装一些多线程的表象（同时发生多项事件）。这种劣根性反而成为它的一种优势。因为它增加了JavaScript编程的简单性。</p>
+<h1 id="再一次的认识"><a href="#再一次的认识" class="headerlink" title="再一次的认识"></a>再一次的认识</h1><p>1.但是Web上的异步行为如何操作呢?JavaScript不是同步的吗?<br>此时Event Loop开始登场发挥作用。在大多数浏览器中，每个选项卡都有一个单独的Event Loop，以避免阻塞整个浏览器的繁重处理。 </p>
+<p>2.microtask微任务是ES6等js语法规定的异步任务<br>包含:<br>process.nextTick()<br>Promise callback<br>async&#x2F;await functions<br>queueMicrotask</p>
+<p>3.macrotask&#x2F;Web APIs 宏任务是由浏览器规定的<br> 包含:<br> setTimeout(),<br> setInterval(),<br> setImmediate(),<br> Ajax,fetch,<br> DOM事件，<br> 键盘&#x2F;鼠标事件</p>
+<p> 4.微任务执行时机比宏任务要早  </p>
+<p> 5.同步任务早于异步任务执行</p>
+<p> 6.Event loop中穿插DOM渲染的时机</p>
+<p> 总结的要点如图所示：<br> <img src="https://s3.bmp.ovh/imgs/2023/02/19/8d24bcdb31a71b11.gif"></p>
+<h1 id="什么是事件循环"><a href="#什么是事件循环" class="headerlink" title="什么是事件循环"></a>什么是事件循环</h1><p>大家可以用<a href="https://www.jsv9000.app/">jsv9000.app</a>这个专门为事件循环而设计的图形化调试网站做演示，以下练习示例使用的此模型。</p>
+<p>事件循环如下图所示。它有一个调用堆栈，一个微任务microtask队列，一个宏任务macrotask队列，Web api也是其中一种。这样的循环器被称为事件循环中的一个tick。每个事件只是一个函数回调。</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/02/19/9cd185fef7393bb5.png"></p>
+<p>例如，当您的JavaScript应用里发出一个fetch异步请求，从服务器获取一些数据时，您在函数中设置了“响应”代码(“回调函数callback”)，并且JS引擎告诉托管环境:“嘿，我现在将暂停执行，但无论何时您完成网络请求，并且您有一些数据，请回调此函数。”</p>
+<p>然后，浏览器被设置为监听来自网络的响应，当它有东西要返回给您时，它将通过将回调函数插入到事件循环中来安排执行时间。</p>
+<p>这些Web api是什么?本质上，它们是您不能访问的线程，您只能调用它们。它们是浏览器中并发性发挥作用的部分。包含有：<br>setTimeout()<br>setInterval()<br>setImmediate()<br>Ajax,fetch,DOM事件<br>键盘&#x2F;鼠标事件</p>
+<p>setTimeout()如何工作setTimeout(() &#x3D;&gt;{})， 0)以毫秒为单位的回调和计时器作为参数。它设置了一个计时器。当计时器到期时，JavaScript环境将回调到任务队列。</p>
+<p>调用堆栈call stack这是执行所有代码的地方。这是一个后进先出队列queue。事件循环持续检查调用堆栈call stack，以查看是否有要运行的函数。</p>
+<p>任务队列每当事件循环遇到类似</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span>&#123;&#125;)， <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<p>的Web API时，它会从调用堆栈中删除它，然后在计时器之后将回调函数发送到任务队列。一旦调用堆栈为空，任务队列中的函数就会被发送到调用堆栈call stack中执行</p>
+<p>微任务队列microtask queue每当事件循环在调用堆栈中遇到一个promise时，它将其发送到微任务队列。一旦调用堆栈为空，微任务队列中的函数就会被发送到调用堆栈call stack执行。微任务队列的优先级高于宏任务队列。因此，promise首先被执行，然后Macrotask Queue中的函数被允许进入调用堆栈。</p>
+<h1 id="示例1演示"><a href="#示例1演示" class="headerlink" title="示例1演示"></a>示例1演示</h1><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;Hi&#x27;</span>);</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="keyword">function</span> <span class="title function_">cb1</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;cb1&#x27;</span>);</span><br><span class="line">&#125;, <span class="number">5000</span>);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;Bye&#x27;</span>);</span><br></pre></td></tr></table></figure>
+<p>开始执行代码片段，看看会发生什么</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/02/19/d91b1533dd409697.gif"></p>
+<p>1.初始时，调用堆栈call stack、任务队列(task queue&#x3D;macrotask queue )和微任务队列microtask queue为空。  </p>
+<p>2.然后console.log(“Hi”)被推入调用堆栈call stack然后执行  </p>
+<p>3.然后setTimeout(function cb1() { console.log(‘cb1’); }, 5000);被执行并从调用堆栈中移除。浏览器创建一个计时器作为Web api的一部分。它会为你处理倒计时。<br>4.cconsole.log(‘Bye’)被添加到调用堆栈并执行。  </p>
+<p>5.在5000毫秒后，计时器完成，它将cb1回调推到任务队列。  </p>
+<p>6.事件循环检查调用堆栈是否为空。发现事件循环为空，它将cb1回调传递给调用堆栈。  </p>
+<p>7.执行cb1。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>事件循环只是一个与调用堆栈和回调队列保持良好通信的中介。它检查调用堆栈是否空闲，然后通知回调队列。然后回调队列将回调函数传递给Call stack执行。当所有回调函数都被执行时，调用堆栈被释放，全局执行上下文是空闲的。</p>
+<h1 id="示例2演示"><a href="#示例2演示" class="headerlink" title="示例2演示"></a>示例2演示</h1><p><img src="https://s3.bmp.ovh/imgs/2023/02/19/c8113abf8ceca7e1.gif"></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">one</span> = (<span class="params"></span>) =&gt; <span class="title class_">Promise</span>.<span class="title function_">resolve</span>(<span class="string">&#x27;one!&#x27;</span>)</span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">myFunc</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;In function ! &#x27;</span>)</span><br><span class="line">  <span class="keyword">const</span> res = <span class="keyword">await</span> <span class="title function_">one</span>()</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(res)</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Before function! &quot;</span>)</span><br><span class="line"><span class="title function_">myFunc</span>();</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;After function ! &quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>如上图所示<br>根据<br>1.同步任务早于异步任务执行<br>2.微任务执行时机比宏任务要早<br>的原则</p>
+<p>‘Before Function’所在的console函数作为同步函数开始执行<br>执行到myFunc的异步函数时，’In function ! ‘所在的console函数被执行<br>Promise开始进入微任务队列<br>优先执行’After function ! ‘同步函数<br>异步promise返回结果’one’</p>
+]]></content>
+      <categories>
+        <category>javascript</category>
+      </categories>
+      <tags>
+        <tag>javascript</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>浅谈react的Framer Motion实战</title>
+    <url>/framer-motion/</url>
+    <content><![CDATA[<p><img src="https://s3.bmp.ovh/imgs/2023/02/16/c61974bdfe5f71d6.png"></p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/02/16/2efeb9581876b07f.gif"></p>
+<h2 id="快速总结"><a href="#快速总结" class="headerlink" title="快速总结"></a>快速总结</h2><p>如果操作得当，css的动画也是非常强大的。然而，用CSS创建耳目一新的动画是很棘手的。接下来是 Framer Motion的到来。有了Framer Motion，你不需要成为一个CSS专家来制作花里胡哨的动画。Framer Motion为我们提供了开箱即用的动画和低成本API，我们可以恰当使用，将这些动画集成到我们的应用程序中。</p>
+<p>在这篇文章中，我们将仔细看看Framer Motion如何帮助我们创建令人生畏的动画。我们将学习Framer Motion如何提高生产力。我们将研究如何使用Framer运动制作手势触发、定时和滚动动画。在此过程中，我们将使用我们所学到的东西来构建五个演示应用程序。</p>
+<p>本教程将有提升那些对在React.js应用程序中集成动画的读者兴趣。</p>
+<p>注意:本文要求对React和CSS有基本的了解。</p>
+<h2 id="什么是Framer-Motion"><a href="#什么是Framer-Motion" class="headerlink" title="什么是Framer Motion?"></a>什么是Framer Motion?</h2><p><a href="https://github.com/framer/motion">Framer Motion github</a></p>
+<p><a href="https://www.framer.com/motion">Framer Motion 文档</a></p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/02/16/c82b4890c8b09c9a.gif"><br><img src="https://s3.bmp.ovh/imgs/2023/02/16/5ccf5350e0ea14f4.gif"></p>
+<p>Framer Motion是一个动画库，使创建动画变得容易。它简化的API帮助我们抽象动画背后的复杂性，并允许我们轻松地创建动画。</p>
+<h2 id="Framer-Motion的使用"><a href="#Framer-Motion的使用" class="headerlink" title="Framer Motion的使用"></a>Framer Motion的使用</h2><p>使用Framer Motion动画化一个h1标签。首先，我们安装帧运动库并导入。我们在其中定义了要制作动画的组件的属性。当组件挂载到DOM中时，我们定义的属性将被动画化。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm i framer-motion</span><br><span class="line">import &#123; motion &#125; from <span class="string">&#x27;framer-motion&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+
+<p>然后我们将h1转换为运动组件</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&lt;motion.<span class="property">h1</span> </span><br><span class="line">  animate=&#123;&#123;<span class="attr">x</span>: <span class="number">20</span>, <span class="attr">y</span>: -<span class="number">20</span>&#125;&#125;&gt;</span><br><span class="line">&lt;/motion.<span class="property">h1</span>&gt;</span><br></pre></td></tr></table></figure>
+
+<p>这将导致h1在加载时向右滑动20px并向上移动20px。当没有添加单位时，使用像素进行计算。但是，您可以显式设置计算所基于的单位</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">animate=&#123;&#123;<span class="attr">x</span>: <span class="string">&quot;20rem &quot;</span>，<span class="attr">y</span>: <span class="string">&quot;-20rem&quot;</span>&#125;&#125;&gt;</span><br></pre></td></tr></table></figure>
+
+<p>如果我们想让h1从左边进来，我们用initial来控制它。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&lt;motion.<span class="property">h1</span></span><br><span class="line">    initial=&#123;&#123;<span class="attr">x</span>: -<span class="number">1000</span>&#125;&#125;</span><br><span class="line">    animate=&#123;&#123;<span class="attr">x</span>: <span class="number">20</span>&#125;&#125;&gt;</span><br><span class="line">&lt;/motion.<span class="property">h1</span>&gt;</span><br></pre></td></tr></table></figure>
+
+<p>Framer Motion不局限于单一的动画。我们可以在值数组中定义一系列称为关键帧的动画。每个值将按顺序动画化。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&lt;motion.<span class="property">h1</span></span><br><span class="line">    initial=&#123;&#123;<span class="attr">x</span>: -<span class="number">1000</span>&#125;&#125;</span><br><span class="line">    animate=&#123;&#123;<span class="attr">x</span>: [<span class="number">20</span>, <span class="number">50</span>, <span class="number">0</span>, -<span class="number">70</span>, <span class="number">40</span>] &#125;&#125;&gt;</span><br><span class="line">&lt;/motion.<span class="property">h1</span>&gt;</span><br></pre></td></tr></table></figure>
+
+
+<p>transition过渡属性允许我们定义动画以何种状态发生。使用它，我们定义值如何从一个状态移动到另一个状态。除此之外，我们可以使用这个属性定义动画的持续时间、延迟和类型。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&lt;motion.<span class="property">h1</span></span><br><span class="line">    initial=&#123;&#123; <span class="attr">x</span>: -<span class="number">1000</span> &#125;&#125;</span><br><span class="line">    animate=&#123;&#123; <span class="attr">x</span>: <span class="number">0</span> &#125;&#125;</span><br><span class="line">    transition=&#123;&#123;</span><br><span class="line">        <span class="attr">type</span>: <span class="string">&quot;tween&quot;</span>,</span><br><span class="line">        <span class="attr">duration</span>: <span class="string">&quot;2&quot;</span>,</span><br><span class="line">        <span class="attr">delay</span>: <span class="string">&quot;1&quot;</span></span><br><span class="line">    &#125;&#125;&gt;</span><br><span class="line">&lt;/motion.<span class="property">h1</span>&gt;</span><br></pre></td></tr></table></figure>
+
+
+<p>假设我们同时为几个运动组件制作动画，如下面的代码片段所示。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&lt;div className=<span class="string">&quot;App&quot;</span>&gt;</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">motion.h1</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">initial</span>=<span class="string">&#123;&#123;</span> <span class="attr">x:</span> <span class="attr">-1000</span> &#125;&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">animate</span>=<span class="string">&#123;&#123;</span> <span class="attr">x:</span> <span class="attr">0</span> &#125;&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">transition</span>=<span class="string">&#123;&#123;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          <span class="attr">type:</span> &quot;<span class="attr">tween</span>&quot;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          <span class="attr">duration:</span> &quot;<span class="attr">2</span>&quot;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          <span class="attr">delay:</span> &quot;<span class="attr">1</span>&quot;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        &#125;&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">motion.h1</span>&gt;</span></span></span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">motion.h2</span>  </span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">initial</span>=<span class="string">&#123;&#123;</span> <span class="attr">y:</span> <span class="attr">-1000</span> &#125;&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">animate</span>=<span class="string">&#123;&#123;</span> <span class="attr">y:</span> <span class="attr">0</span> &#125;&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">transition</span>=<span class="string">&#123;&#123;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          <span class="attr">type:</span> &quot;<span class="attr">tween</span>&quot;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          <span class="attr">duration:</span> &quot;<span class="attr">1</span>&quot;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          <span class="attr">delay:</span> &quot;<span class="attr">.4</span>&quot;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        &#125;&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">motion.h2</span>&gt;</span></span></span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">motion.h3</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">       <span class="attr">initial</span>=<span class="string">&#123;&#123;</span> <span class="attr">x:</span> <span class="attr">100</span>, <span class="attr">opacity:</span> <span class="attr">0</span> &#125;&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">       <span class="attr">animate</span>=<span class="string">&#123;&#123;</span> <span class="attr">x:</span> <span class="attr">0</span>, <span class="attr">opacity:</span> <span class="attr">1</span> &#125;&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">motion.h3</span>&gt;</span></span></span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">motion.h4</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">       <span class="attr">initial</span>=<span class="string">&#123;&#123;</span> <span class="attr">scale:</span> <span class="attr">0.7</span> &#125;&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">       <span class="attr">animate</span>=<span class="string">&#123;&#123;</span> <span class="attr">scale:</span> <span class="attr">1.7</span> &#125;&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">       <span class="attr">transition</span>=<span class="string">&#123;&#123;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">         <span class="attr">type:</span> &quot;<span class="attr">tween</span>&quot;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">         <span class="attr">duration:</span> &quot;<span class="attr">2</span>&quot;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">         <span class="attr">delay:</span> &quot;<span class="attr">1</span>&quot;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">       &#125;&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">motion.h4</span>&gt;</span></span></span><br><span class="line">    &lt;/div&gt;</span><br></pre></td></tr></table></figure>
+
+<p>当这工作时，Framer Motion中的变量使我们能够将动画定义提取到变量对象中。变体不仅使我们的代码更清晰，而且允许我们创建更强大和复杂的动画。</p>
+<p>将我们的动画定义提取到变量对象中，</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> H1Variants = &#123;</span><br><span class="line">  <span class="attr">initial</span>: &#123; <span class="attr">x</span>: -<span class="number">1000</span> &#125;,</span><br><span class="line">  <span class="attr">animate</span>: &#123; <span class="attr">x</span>: <span class="number">0</span> &#125;,</span><br><span class="line">  <span class="attr">transition</span>: &#123;</span><br><span class="line">    <span class="attr">type</span>: <span class="string">&quot;tween&quot;</span>,</span><br><span class="line">    <span class="attr">duration</span>: <span class="number">2</span>,</span><br><span class="line">    <span class="attr">delay</span>: <span class="number">1</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125; </span><br><span class="line"><span class="keyword">const</span> H2Variants = &#123;</span><br><span class="line">  <span class="attr">initial</span>: &#123; <span class="attr">y</span>: -<span class="number">1000</span> &#125;,</span><br><span class="line">  <span class="attr">animate</span>: &#123; <span class="attr">y</span>: <span class="number">0</span> &#125;,</span><br><span class="line">  <span class="attr">transition</span>: &#123;</span><br><span class="line">    <span class="attr">type</span>: <span class="string">&quot;tween&quot;</span>,</span><br><span class="line">    <span class="attr">duration</span>: <span class="number">1</span>,</span><br><span class="line">    <span class="attr">delay</span>: <span class="number">.4</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">const</span> H3Variants = &#123;</span><br><span class="line">  <span class="attr">initial</span>:&#123; <span class="attr">x</span>: <span class="number">100</span>, <span class="attr">opacity</span>: <span class="number">0</span> &#125;,</span><br><span class="line">  <span class="attr">animate</span>:&#123; <span class="attr">x</span>: <span class="number">0</span>, <span class="attr">opacity</span>: <span class="number">1</span> &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">const</span> H4Variants = &#123;</span><br><span class="line">  <span class="attr">initial</span>:&#123; <span class="attr">scale</span>: <span class="number">0.7</span> &#125;,</span><br><span class="line">  <span class="attr">animate</span>:&#123; <span class="attr">scale</span>: <span class="number">1.7</span> &#125;,</span><br><span class="line">  <span class="attr">transition</span>:&#123;</span><br><span class="line">    <span class="attr">type</span>: <span class="string">&quot;tween&quot;</span>,</span><br><span class="line">    <span class="attr">duration</span>: <span class="string">&quot;2&quot;</span>,</span><br><span class="line">    <span class="attr">delay</span>: <span class="string">&quot;1&quot;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>我们没有将动画定义直接传递到组件的initial和animate的props中，而是将这些定义提取到独立的变体对象中。在变体对象中，我们定义变体名称，将每个动画的名称描述为变体。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&lt;div className=<span class="string">&quot;App&quot;</span>&gt;</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">motion.h1</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">variants</span>=<span class="string">&#123;H1Variants&#125;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">initial</span>=<span class="string">&#x27;initial&#x27;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">animate</span>=<span class="string">&#x27;animate&#x27;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      &gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">motion.h1</span>&gt;</span></span></span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">motion.h2</span>  </span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">variants</span>=<span class="string">&#123;H2Variants&#125;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">initial</span>=<span class="string">&#x27;initial&#x27;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">animate</span>=<span class="string">&#x27;animate&#x27;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">       &gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">motion.h2</span>&gt;</span></span></span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">motion.h3</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">variants</span>=<span class="string">&#123;H3Variants&#125;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">initial</span>=<span class="string">&#x27;initial&#x27;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">animate</span>=<span class="string">&#x27;animate&#x27;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">       &gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">motion.h3</span>&gt;</span></span></span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">motion.h4</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">variants</span>=<span class="string">&#123;H4Variants&#125;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">initial</span>=<span class="string">&#x27;initial&#x27;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">animate</span>=<span class="string">&#x27;animate&#x27;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">       &gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">motion.h4</span>&gt;</span></span></span><br><span class="line">&lt;/div&gt;</span><br></pre></td></tr></table></figure>
+
+
+<p>在variants prop中，我们为每个运动组件传递变量对象的名称，然后将动画传递给initial props和animate props。</p>
+<p>我们可以进一步利用现有的变体来减少重复。使用变量，我们可以通过DOM从父动作组件向下传播动画属性。为了实现这一点，我们为父运动创建了motion.div在其变体对象中具有与其子对象相似的动画名称。通过这样做，我们将不必将动画名称传递给每个子组件，同时父元素为我们处理这些。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">ContainerVariants</span> = &#123;</span><br><span class="line">  <span class="attr">initial</span>: &#123;&#125;,</span><br><span class="line">  <span class="attr">animate</span>: &#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">const</span> H1Variants = &#123;</span><br><span class="line">  <span class="attr">initial</span>: &#123; <span class="attr">x</span>: -<span class="number">1000</span> &#125;,</span><br><span class="line">  <span class="attr">animate</span>: &#123; <span class="attr">x</span>: <span class="number">0</span> &#125;,</span><br><span class="line">  <span class="attr">transition</span>: &#123;</span><br><span class="line">    <span class="attr">type</span>: <span class="string">&quot;tween&quot;</span>,</span><br><span class="line">    <span class="attr">duration</span>: <span class="number">2</span>,</span><br><span class="line">    <span class="attr">delay</span>: <span class="number">1</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">//更多的变量</span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">motion.div</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">className</span>=<span class="string">&quot;App&quot;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">variants</span>=<span class="string">&#123;ContainerVariants&#125;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">initial</span>=<span class="string">&quot;initial&quot;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">animate</span>=<span class="string">&quot;animate&quot;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">    &gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">motion.h1</span> <span class="attr">variants</span>=<span class="string">&#123;H1Variants&#125;</span>&gt;</span>h1<span class="tag">&lt;/<span class="name">motion.h1</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">motion.h2</span> <span class="attr">variants</span>=<span class="string">&#123;H2Variants&#125;</span>&gt;</span>h2<span class="tag">&lt;/<span class="name">motion.h2</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">motion.h3</span> <span class="attr">variants</span>=<span class="string">&#123;H3Variants&#125;</span>&gt;</span>h3<span class="tag">&lt;/<span class="name">motion.h3</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">motion.h4</span> <span class="attr">variants</span>=<span class="string">&#123;H4Variants&#125;</span>&gt;</span>h4<span class="tag">&lt;/<span class="name">motion.h4</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;/<span class="name">motion.div</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+
+
+<p>现在我们了解了Framer Motion的基本原理。让我们开始</p>
+<h2 id="构建一个演示应用–图标列表"><a href="#构建一个演示应用–图标列表" class="headerlink" title="构建一个演示应用–图标列表"></a>构建一个演示应用–图标列表</h2><p><img src="https://s3.bmp.ovh/imgs/2023/02/16/012a437065c56e59.gif"></p>
+<h3 id="组件"><a href="#组件" class="headerlink" title="组件"></a>组件</h3><ul>
+<li><p><code>App.js</code>:保存标题文本。  </p>
+</li>
+<li><p><code>Card.jsx</code>:在这里，我们定义了图标卡的动画。</p>
+</li>
+<li><p><code>CardContainer.jsx</code>:我们导入并循环图标。  </p>
+</li>
+<li><p><code>styles.js</code>:创建、样式化和导出运动组件。我使用样式组件对组件进行样式化。</p>
+</li>
+</ul>
+<p>从App.js开始</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="variable constant_">H1</span>, <span class="variable constant_">H2</span> &#125; <span class="keyword">from</span> <span class="string">&quot;./Styles&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="title class_">CardContainer</span> <span class="keyword">from</span> <span class="string">&quot;./CardContainer&quot;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">H1</span> </span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">initial</span>=<span class="string">&#123;&#123;</span> <span class="attr">y:</span> <span class="attr">-100</span> &#125;&#125; </span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">animate</span>=<span class="string">&#123;&#123;</span> <span class="attr">y:</span> <span class="attr">0</span>, <span class="attr">transition:</span> &#123; <span class="attr">delay:</span> <span class="attr">1</span> &#125; &#125;&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">H1</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">H2</span> </span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">initial</span>=<span class="string">&#123;&#123;</span> <span class="attr">x:</span> <span class="attr">-1000</span> &#125;&#125; </span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">animate</span>=<span class="string">&#123;&#123;</span> <span class="attr">x:</span> <span class="attr">0</span>, <span class="attr">transition:</span> &#123; <span class="attr">delay:</span> <span class="attr">1</span> &#125; &#125;&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">H2</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">CardContainer</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">  );</span><br></pre></td></tr></table></figure>
+
+
+<p>导入在Styles.js文件中创建H1和H2的motion组件。由于它们是motion组件，我们使用initial和animate props来定义它们在mount之前和mount时的行为。在这里，我们还导入并显示CardContiner组件。</p>
+<p>现在是CardContainer.js</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Container</span> &#125; <span class="keyword">from</span> <span class="string">&quot;./Styles&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Card</span> <span class="keyword">from</span> <span class="string">&quot;./Card&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">ReactComponent</span> <span class="keyword">as</span> <span class="title class_">AddIcon</span> &#125; <span class="keyword">from</span> <span class="string">&quot;./assets/add.svg&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">ReactComponent</span> <span class="keyword">as</span> <span class="title class_">AirplaneIcon</span> &#125; <span class="keyword">from</span> <span class="string">&quot;./assets/airplane.svg&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">ReactComponent</span> <span class="keyword">as</span> <span class="title class_">AlarmIcon</span> &#125; <span class="keyword">from</span> <span class="string">&quot;./assets/alarm.svg&quot;</span>;</span><br><span class="line"><span class="comment">// 更多svg</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> icons = [</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">AddIcon</span> /&gt;</span></span>,</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">AirplaneIcon</span> /&gt;</span></span>,</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">AlarmIcon</span> /&gt;</span></span>,</span><br><span class="line">  <span class="comment">// 更多icon</span></span><br><span class="line">];</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">CardContainer</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">Container</span> <span class="attr">initial</span>=<span class="string">&#123;&#123;</span> <span class="attr">x:</span> <span class="attr">-1000</span> &#125;&#125; <span class="attr">animate</span>=<span class="string">&#123;&#123;</span> <span class="attr">x:</span> <span class="attr">0</span> &#125;&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">      &#123;icons.map((icon) =&gt; (</span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">Card</span> <span class="attr">icon</span>=<span class="string">&#123;icon&#125;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">      ))&#125;</span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">Container</span>&gt;</span></span></span><br><span class="line">  );</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+<p>在这里，我们导入SVGs、Container motion组件和Card组件。</p>
+<p>类似于App.js中的H1和H2，我们使用initial和animate props定义Container的动画。当它加载时，它将创建一个基础的效果，从浏览器的左边滑动。</p>
+<p>现在Card.js</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">CardBox</span>, <span class="title class_">IconBox</span> &#125; <span class="keyword">from</span> <span class="string">&quot;./Styles&quot;</span>;</span><br><span class="line"><span class="keyword">const</span> <span class="title class_">CardVariants</span> = &#123;</span><br><span class="line">  <span class="attr">beforeHover</span>: &#123;&#125;,</span><br><span class="line">  <span class="attr">onHover</span>: &#123;</span><br><span class="line">    <span class="attr">scale</span>: <span class="number">1.1</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">const</span> <span class="title class_">IconVariants</span> = &#123;</span><br><span class="line">  <span class="attr">beforeHover</span>: &#123;</span><br><span class="line">    <span class="attr">opacity</span>: <span class="number">0</span>,</span><br><span class="line">    <span class="attr">y</span>: -<span class="number">50</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">onHover</span>: &#123;</span><br><span class="line">    <span class="attr">opacity</span>: <span class="number">1</span>,</span><br><span class="line">    <span class="attr">y</span>: <span class="number">0</span>,</span><br><span class="line">    <span class="attr">scale</span>: <span class="number">1.5</span>,</span><br><span class="line">    <span class="attr">transition</span>: &#123;</span><br><span class="line">      <span class="attr">type</span>: <span class="string">&quot;tween&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">Card</span> = (<span class="params">&#123; icon &#125;</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">CardBox</span> <span class="attr">variants</span>=<span class="string">&#123;CardVariants&#125;</span> <span class="attr">initial</span>=<span class="string">&quot;beforeHover&quot;</span> <span class="attr">whileHover</span>=<span class="string">&quot;onHover&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">IconBox</span> <span class="attr">variants</span>=<span class="string">&#123;IconVariants&#125;</span>&gt;</span>&#123;icon&#125;<span class="tag">&lt;/<span class="name">IconBox</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">CardBox</span>&gt;</span></span></span><br><span class="line">  );</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+<p>在这里，我们用beforeHover和onHover动画创建了两个不同的对象。在CardVariants对象中，我们一开始不想做任何逻辑，因此beforeHover是一个空对象。onHover时，我们增加card box的尺寸。</p>
+<p>在IconVariants对象中，我们在其beforeHover中定义了IconBox的初始状态。我们设置它的不透明度为0，并向上推50px。然后，在onHover中，我们将不透明度设置为1，将其推回默认位置，并将过渡类型更改为tween。然后我们将变量传递给它们各自的运动组件。我们使用了propagation，所以我们不需要显式地为IconBox组件设置initial和animate props</p>
+<h2 id="尾声"><a href="#尾声" class="headerlink" title="尾声"></a>尾声</h2><p>我们已经了解了Framer Motion的基础知识，并看到了演示项目，使我们一瞥了可以创建的动画范围。然而，你可以用它做更多的事情。钻研文档，尽情发挥。</p>
+]]></content>
+      <categories>
+        <category>React.js</category>
+        <category>animation</category>
+      </categories>
+      <tags>
+        <tag>React.js</tag>
+        <tag>animation</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>next.js 13的服务端组件雏形</title>
+    <url>/fun-nextjs/</url>
+    <content><![CDATA[<h1 id="Hi-👋"><a href="#Hi-👋" class="headerlink" title="Hi! 👋"></a>Hi! 👋</h1><h1 id="有趣的next-js服务端组件"><a href="#有趣的next-js服务端组件" class="headerlink" title="有趣的next.js服务端组件"></a>有趣的next.js服务端组件</h1><p>Next.js 13 添加了许多值得注意且颠覆性的东西；但是，很大一部分仍然是 Beta阶段。尽管如此，Beta 功能为我们提供了关于 Next.js 未来将会被如何塑造的重要信号，即使你现在并不打算在你的项目里使用它。</p>
+<h2 id="默认创建服务端组件，如需更改客户端组件需要显式声明："><a href="#默认创建服务端组件，如需更改客户端组件需要显式声明：" class="headerlink" title="默认创建服务端组件，如需更改客户端组件需要显式声明："></a>默认创建服务端组件，如需更改客户端组件需要显式声明：</h2><p><code>Next.js 13</code> 引入了app文件目录，这是一种在考虑 <code>React Server Components</code>的情况下构建 Next.js 应用程序的全新方式。<code>app</code>目录下构建的组件默认是<code>React Server Components</code>，如果要构建客户端组件必须显式添加 <code>&#39;use client&#39;</code></p>
+<h2 id="什么是-React-服务器组件？"><a href="#什么是-React-服务器组件？" class="headerlink" title="什么是 React 服务器组件？"></a>什么是 React 服务器组件？</h2><p><code>React Server Components</code>是在服务器上呈现的组件。<code>React Server Components</code>利用服务器的优势功能给客户端提供更优质的体验。</p>
+<p>服务器组件最常见的用例是获取数据并根据服务器上的数据呈现在你的组件内。</p>
+<h3 id="你要考虑放入服务器组件的内容是："><a href="#你要考虑放入服务器组件的内容是：" class="headerlink" title="你要考虑放入服务器组件的内容是："></a>你要考虑放入服务器组件的内容是：</h3><p>获取数据（利用服务器的超高速连接）<br>访问后端资源或文件系统<br>不需要客户端交互的具有大量依赖项的组件</p>
+<p>💡<code>注意</code> <code>React Server Components</code>不能包含任何客户端交互，，因为您需要提前考虑如何最好地分发组件，但目标是将尽可能多的组件移至可预测且性能更高的服务器。<br>仅客户端调用的常见示例：<code>useState,useEffect,onClick</code></p>
+<h2 id="为什么需要-React-服务器组件？"><a href="#为什么需要-React-服务器组件？" class="headerlink" title="为什么需要 React 服务器组件？"></a>为什么需要 React 服务器组件？</h2><p>第一个原因是服务器组件对应用程序的整体包大小贡献为零。这意味着客户端的下载文件大小更小，从而使您的页面更快。</p>
+<p>如果您有需要使用但客户端不需要的包，这个好处会非常有用。将这些依赖项完全保留在服务器端意味着减少客户端的下载。首屏加载体验会更佳</p>
+<p>如上所述，另一个很大的好处是您的代码在功能强大的服务器上运行，希望也更接近数据。将计算推送到服务器可以为移动设备上的访问者带来很大的不同。</p>
+<h2 id="一个示例"><a href="#一个示例" class="headerlink" title="一个示例"></a>一个示例</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="attr">C</span>:.</span><br><span class="line">│  .<span class="property">env</span></span><br><span class="line">│  .<span class="property">eslintrc</span>.<span class="property">json</span></span><br><span class="line">│  .<span class="property">gitignore</span></span><br><span class="line">│  next-env.<span class="property">d</span>.<span class="property">ts</span></span><br><span class="line">│  next.<span class="property">config</span>.<span class="property">js</span></span><br><span class="line">│  package-lock.<span class="property">json</span></span><br><span class="line">│  package.<span class="property">json</span></span><br><span class="line">│  <span class="variable constant_">README</span>.<span class="property">md</span></span><br><span class="line">│  tsconfig.<span class="property">json</span></span><br><span class="line">│</span><br><span class="line">├─.<span class="property">vscode</span></span><br><span class="line">│      settings.<span class="property">json</span></span><br><span class="line">│</span><br><span class="line">├─app</span><br><span class="line">│  │  globals.<span class="property">css</span></span><br><span class="line">│  │  head.<span class="property">tsx</span></span><br><span class="line">│  │  layout.<span class="property">tsx</span></span><br><span class="line">│  │  page.<span class="property">tsx</span></span><br><span class="line">│  │</span><br><span class="line">│  ├─client</span><br><span class="line">│  │      page.<span class="property">tsx</span></span><br><span class="line">│  │</span><br><span class="line">│  ├─degenerate</span><br><span class="line">│  │      client.<span class="property">tsx</span></span><br><span class="line">│  │      nested-server.<span class="property">tsx</span></span><br><span class="line">│  │      page.<span class="property">tsx</span></span><br><span class="line">│  │</span><br><span class="line">│  ├─mixmatch</span><br><span class="line">│  │      client.<span class="property">tsx</span></span><br><span class="line">│  │      nested-server.<span class="property">tsx</span></span><br><span class="line">│  │      page.<span class="property">tsx</span></span><br><span class="line">│  │</span><br><span class="line">│  └─server</span><br><span class="line">│          page.<span class="property">tsx</span></span><br><span class="line">│</span><br><span class="line">└─public</span><br><span class="line">        favicon.<span class="property">ico</span></span><br><span class="line">        vercel.<span class="property">svg</span></span><br></pre></td></tr></table></figure>
+
+<p><code>创建我们的第一个服务器组件：</code></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/server/page.tsx</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">Server</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;服务器页面已渲染:这应该只打印在服务器上&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">h1</span>&gt;</span>Server Page<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">p</span>&gt;</span>My secret key: &#123;process.env.MY_SECRET_ENV&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果您访问&#x2F;server路由，无论是通过浏览器加载还是客户端路由，都只会在服务器控制台中看到日志行，而不会在浏览器控制台中看到。环境变量值也是从服务器端获取的。</p>
+<p>查看浏览器中的网络流量，会看到服务器组件的内容是通过远程调用加载的，该调用返回渲染结果的 JSON 数据的八位字节流：<br><img src="https://s3.bmp.ovh/imgs/2023/03/02/230d7c485b9c1860.png"></p>
+<p>渲染服务器组件实际上是一个 API 调用，以获取序列化的虚拟 DOM，然后在浏览器中实现它。</p>
+<p>最重要的是，服务器组件用于呈现非交互式内容，因此没有事件处理程序、没有 React hooks，也没有仅限浏览器的API。</p>
+<p>最显着的好处是可以自由访问服务器组件中的任何后端资源和机密。它更安全（数据不会泄漏）和更快（代码不会泄漏）。</p>
+<h2 id="客户端组件"><a href="#客户端组件" class="headerlink" title="客户端组件"></a>客户端组件</h2><p>要做一个客户端组件，需要显式声明<code>use client</code></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/server/page.tsx</span></span><br><span class="line"><span class="string">&#x27;use client&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> &#123; useEffect &#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">Client</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(</span><br><span class="line">        <span class="string">&#x27;客户端页面渲染:这应该只在ssr期间打印在服务器上，在路由时打印在客户端上&#x27;</span></span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;客户端组件渲染&#x27;</span>);</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">h1</span>&gt;</span>Client Page<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这提供了与以前的 Next.js 版本类似的行为。当页面首次加载时，它是由 SSR 渲染的，因此在服务器控制台中看到第一个日志；在客户端路由期间，两条日志消息都将出现在浏览器控制台中。</p>
+<h2 id="到底有什么区别"><a href="#到底有什么区别" class="headerlink" title="到底有什么区别"></a>到底有什么区别</h2><p>Server Component 和 SSR 最大的区别之一是 SSR 是页面级别的，而 Server Component 顾名思义是组件级别的。这意味着您可以根据需要在渲染树中混合和匹配服务器和客户端组件。</p>
+<h2 id="服务器组件可能会降级退化"><a href="#服务器组件可能会降级退化" class="headerlink" title="服务器组件可能会降级退化"></a>服务器组件可能会降级退化</h2><p>如果将服务器组件直接引入到客户端组件中，它会默认降级退化为客户端组件。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/degenerate/page.tsx</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Client</span> <span class="keyword">from</span> <span class="string">&#x27;./client&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">DegeneratePage</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;降级页面渲染&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">h1</span>&gt;</span>Degenerated Page<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;box-blue&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">                <span class="tag">&lt;<span class="name">Client</span> <span class="attr">message</span>=<span class="string">&quot;A message from server&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/degenerate/client.tsx</span></span><br><span class="line"></span><br><span class="line"><span class="string">&#x27;use client&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">NestedServer</span> <span class="keyword">from</span> <span class="string">&#x27;./nested-server&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">Client</span>(<span class="params">&#123; message &#125;: &#123; message: string &#125;</span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;客户端组件渲染&#x27;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">h2</span>&gt;</span>Client Child<span class="tag">&lt;/<span class="name">h2</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">p</span>&gt;</span>Message from parent: &#123;message&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;box-blue&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">                <span class="tag">&lt;<span class="name">NestedServer</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/degenerated/nested-server.tsx</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">NestedServer</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;嵌套服务端组件渲染&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">h3</span>&gt;</span>降级服务端组件<span class="tag">&lt;/<span class="name">h3</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">p</span>&gt;</span>内容<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果您查看日志，会看到<code>NestedServer</code>已经“降级退化”并且由浏览器呈现。</p>
+<h2 id="这是一个未来的趋势么？"><a href="#这是一个未来的趋势么？" class="headerlink" title="这是一个未来的趋势么？"></a>这是一个未来的趋势么？</h2><p>Next.js 正在尽其所能将事情转移到服务器端，这正是人们在 2010 年前进行 Web 开发的方式😅。所以现在我们完成了一个完整的循环，但大大改善了开发体验和最终用户体验。</p>
+<p>对于终端用户来说，这是一个明显的胜利，因为服务器端的计算速度更快、更可靠。结果将是更快的第一个内容渲染</p>
+<p>对于开发人员而言，模式转变将在精神上带来挑战，并伴随着混乱、错误和反模式。这将是一段地狱般的旅程。</p>
+<h2 id="🚀-关于我"><a href="#🚀-关于我" class="headerlink" title="🚀 关于我"></a>🚀 关于我</h2><p><a href="https://github.com/songhang666">戳</a><br>👩‍💻 🧠👯‍♀️🤔 💬 📫😄 ⚡️ </p>
+]]></content>
+      <categories>
+        <category>next</category>
+      </categories>
+      <tags>
+        <tag>next</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Vless for Glitch搭建和部署</title>
+    <url>/glitch-deploy/</url>
+    <content><![CDATA[<h1 id="Vless-for-Glitch"><a href="#Vless-for-Glitch" class="headerlink" title="Vless for Glitch"></a>Vless for Glitch</h1><hr>
+<h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ul>
+<li><a href="README.md#%E9%A1%B9%E7%9B%AE%E7%89%B9%E7%82%B9">项目特点</a></li>
+<li><a href="README.md#%E9%83%A8%E7%BD%B2">部署</a></li>
+<li><a href="README.md#%E9%B8%A3%E8%B0%A2%E4%B8%8B%E5%88%97%E4%BD%9C%E8%80%85%E7%9A%84%E6%96%87%E7%AB%A0%E5%92%8C%E9%A1%B9%E7%9B%AE">鸣谢下列作者的文章和项目</a></li>
+<li><a href="README.md#%E5%85%8D%E8%B4%A3%E5%A3%B0%E6%98%8E">免责声明</a></li>
+</ul>
+<hr>
+<h2 id="项目特点"><a href="#项目特点" class="headerlink" title="项目特点:"></a>项目特点:</h2><ul>
+<li>本项目用于在 <a href="https://glitch.com/">Glitch</a> 免费服务上部署 VLESS</li>
+<li>集成哪吒探针，可以自由选择是否安装</li>
+<li>部署完成如发现不能上网，请检查域名是否被墙，可使用 Cloudflare CDN 或者 worker 解决。</li>
+</ul>
+<h2 id="部署"><a href="#部署" class="headerlink" title="部署:"></a>部署:</h2><ul>
+<li>注册 <a href="https://glitch.com/">Glitch</a></li>
+<li>config.json 的 17 行修改 UUID</li>
+<li>server.js 的 106 行修改自己的 URL， 44 行修改哪吒参数</li>
+<li>部署成功后 velss ws 的路径为: <code>/api</code>，如要修改，可以寻找并替换 server.js 的 90、96、97 行里的 api</li>
+<li>需要应用的 js<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>是否必须</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><URL>&#x2F;start</td>
+<td>是</td>
+<td>运行 vless</td>
+</tr>
+<tr>
+<td><URL>&#x2F;nezha</td>
+<td>否</td>
+<td>运行哪吒</td>
+</tr>
+<tr>
+<td><URL>&#x2F;api</td>
+<td>否</td>
+<td>查看 vless 运行结果 Bad Request 即是 OK</td>
+</tr>
+<tr>
+<td><URL>&#x2F;status</td>
+<td>否</td>
+<td>查看后台进程</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+<p><img src="https://user-images.githubusercontent.com/92626977/212469541-9f1ceb5e-d525-4787-8142-0df4dafdbbe8.png" alt="image"></p>
+<p><img src="https://user-images.githubusercontent.com/92626977/212469554-4ccd234c-8a49-4927-bada-2a8e947e9a37.png" alt="image"></p>
+<p><img src="https://user-images.githubusercontent.com/92626977/212469562-5de97b9e-2d6f-41f1-9cea-fd2ade3df07b.png" alt="image"></p>
+<p><img src="https://user-images.githubusercontent.com/92626977/212469659-76bacf83-423f-4625-894a-eadf2ee1a17d.png" alt="image"></p>
+<img width="1232" alt="image" src="https://user-images.githubusercontent.com/92626977/212469743-f54c1122-d145-4db1-a78e-c94e0c41d169.png">
+
+<img width="1175" alt="image" src="https://user-images.githubusercontent.com/92626977/212469767-073a170b-dbb3-49bf-bdac-57eba2eae324.png">
+
+<img width="1210" alt="image" src="https://user-images.githubusercontent.com/92626977/212470356-b3a03bf6-6484-4b43-ad75-671692c2be4b.png">
+
+<img width="1410" alt="image" src="https://user-images.githubusercontent.com/92626977/212469906-a2ff6091-4802-4492-b282-cf652b5b17e7.png">
+
+<img width="1467" alt="image" src="https://user-images.githubusercontent.com/92626977/212469937-bd448a4e-577c-4cac-9028-dfb8c9411e91.png">
+
+<img width="577" alt="image" src="https://user-images.githubusercontent.com/92626977/212469959-f2762c30-5cb1-4a31-9f77-0dad6319bd90.png">
+
+<img width="477" alt="image" src="https://user-images.githubusercontent.com/92626977/212470037-58621fe0-9f45-452e-97b4-419565920d61.png">
+
+<img width="593" alt="image" src="https://user-images.githubusercontent.com/92626977/212469999-af9685ff-3392-42f1-88bb-0e615a61ab9b.png">
+
+<img width="512" alt="image" src="https://user-images.githubusercontent.com/92626977/212470068-609dedea-2bfd-4ccf-80b2-6ed2a82e3dc5.png">
+
+<img width="1140" alt="image" src="https://user-images.githubusercontent.com/92626977/212470157-77b77f8c-dcb8-425e-81a4-83bc1881126c.png">
+
+<img width="499" alt="image" src="https://user-images.githubusercontent.com/92626977/212470733-446938ae-e403-424b-b7ce-51e775b30ed2.png">
+
+
+<h2 id="鸣谢下列作者的文章和项目"><a href="#鸣谢下列作者的文章和项目" class="headerlink" title="鸣谢下列作者的文章和项目:"></a>鸣谢下列作者的文章和项目:</h2><p>大佬 Nike Jeff 的 trojan 项目，<a href="https://github.com/hrzyang/glitch-trojan">https://github.com/hrzyang/glitch-trojan</a> ，在此基础上作修改。</p>
+<h2 id="免责声明"><a href="#免责声明" class="headerlink" title="免责声明:"></a>免责声明:</h2><ul>
+<li>本程序仅供学习了解, 非盈利目的，请于下载后 24 小时内删除, 不得用作任何商业用途, 文字、数据及图片均有所属版权, 如转载须注明来源。</li>
+<li>使用本程序必循遵守部署免责声明。使用本程序必循遵守部署服务器所在地、所在国家和用户所在国家的法律法规, 程序作者不对使用者任何不当行为负责。</li>
+</ul>
+]]></content>
+  </entry>
+  <entry>
+    <title>一行可以做的事</title>
+    <url>/js-one-liner/</url>
+    <content><![CDATA[<h1 id="Hi-👋"><a href="#Hi-👋" class="headerlink" title="Hi! 👋"></a>Hi! 👋</h1><h1 id="JavaScript-单行简代码"><a href="#JavaScript-单行简代码" class="headerlink" title="JavaScript 单行简代码"></a>JavaScript 单行简代码</h1><p>使用这些基本的一行代码将您的JavaScript技能提升到一个新的水平，它们还可以节省您的编码时间</p>
+<h2 id="1-查找数组中的最大值："><a href="#1-查找数组中的最大值：" class="headerlink" title="1) 查找数组中的最大值："></a>1) 查找数组中的最大值：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Math</span>.<span class="title function_">max</span>(...array)</span><br></pre></td></tr></table></figure>
+<h2 id="2-从数组中删除重复项："><a href="#2-从数组中删除重复项：" class="headerlink" title="2) 从数组中删除重复项："></a>2) 从数组中删除重复项：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">[...<span class="keyword">new</span> <span class="title class_">Set</span>(array)]</span><br></pre></td></tr></table></figure>
+<h2 id="3）生成一个1到100之间的随机数："><a href="#3）生成一个1到100之间的随机数：" class="headerlink" title="3）生成一个1到100之间的随机数："></a>3）生成一个1到100之间的随机数：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Math</span>.<span class="title function_">floor</span>(<span class="title class_">Math</span>.<span class="title function_">random</span>() * <span class="number">100</span>) + <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<h2 id="4-检查字符串是否为有效数字："><a href="#4-检查字符串是否为有效数字：" class="headerlink" title="4) 检查字符串是否为有效数字："></a>4) 检查字符串是否为有效数字：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">!<span class="built_in">isNaN</span>(<span class="built_in">parseFloat</span>(string))</span><br></pre></td></tr></table></figure>
+<h2 id="5）获取当前日期和时间："><a href="#5）获取当前日期和时间：" class="headerlink" title="5）获取当前日期和时间："></a>5）获取当前日期和时间：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">toString</span>()</span><br></pre></td></tr></table></figure>
+<h2 id="6-检查变量是否为数组："><a href="#6-检查变量是否为数组：" class="headerlink" title="6) 检查变量是否为数组："></a>6) 检查变量是否为数组：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Array</span>.<span class="title function_">isArray</span>(variable)</span><br></pre></td></tr></table></figure>
+<h2 id="7-检查一个变量是否是一个对象："><a href="#7-检查一个变量是否是一个对象：" class="headerlink" title="7) 检查一个变量是否是一个对象："></a>7) 检查一个变量是否是一个对象：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typeof</span> variable === <span class="string">&quot;object&quot;</span></span><br></pre></td></tr></table></figure>
+<h2 id="8-将数组转换为字符串："><a href="#8-将数组转换为字符串：" class="headerlink" title="8) 将数组转换为字符串："></a>8) 将数组转换为字符串：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">array.<span class="title function_">join</span>(<span class="string">&quot;,&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="9-检查一个变量是否是一个函数："><a href="#9-检查一个变量是否是一个函数：" class="headerlink" title="9) 检查一个变量是否是一个函数："></a>9) 检查一个变量是否是一个函数：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typeof</span> variable === <span class="string">&quot;function&quot;</span></span><br></pre></td></tr></table></figure>
+<h2 id="10-将对象转换为数组："><a href="#10-将对象转换为数组：" class="headerlink" title="10) 将对象转换为数组："></a>10) 将对象转换为数组：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Object</span>.<span class="title function_">values</span>(object)</span><br></pre></td></tr></table></figure>
+<h2 id="11-计算数组中某个元素的出现次数："><a href="#11-计算数组中某个元素的出现次数：" class="headerlink" title="11) 计算数组中某个元素的出现次数："></a>11) 计算数组中某个元素的出现次数：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">array.<span class="title function_">filter</span>(<span class="function"><span class="params">x</span> =&gt;</span> x === element).<span class="property">length</span></span><br></pre></td></tr></table></figure>
+<h2 id="12-使用动态键和值创建一个新对象："><a href="#12-使用动态键和值创建一个新对象：" class="headerlink" title="12) 使用动态键和值创建一个新对象："></a>12) 使用动态键和值创建一个新对象：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&#123; [key]: value &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="13-检查字符串是否为回文-正反读都一样的字符串-："><a href="#13-检查字符串是否为回文-正反读都一样的字符串-：" class="headerlink" title="13) 检查字符串是否为回文(正反读都一样的字符串)："></a>13) 检查字符串是否为回文(正反读都一样的字符串)：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">string === string.<span class="title function_">split</span>(<span class="string">&quot;&quot;</span>).<span class="title function_">reverse</span>().<span class="title function_">join</span>(<span class="string">&quot;&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="14-获取数组中所有数字的总和"><a href="#14-获取数组中所有数字的总和" class="headerlink" title="14) 获取数组中所有数字的总和"></a>14) 获取数组中所有数字的总和</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">array.<span class="title function_">reduce</span>(<span class="function">(<span class="params">a, b</span>) =&gt;</span> a + b, <span class="number">0</span>));</span><br></pre></td></tr></table></figure>
+<h2 id="15-获取当前时间戳："><a href="#15-获取当前时间戳：" class="headerlink" title="15) 获取当前时间戳："></a>15) 获取当前时间戳：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Date</span>.<span class="title function_">now</span>()</span><br></pre></td></tr></table></figure>
+<h2 id="16-检查变量是否为空："><a href="#16-检查变量是否为空：" class="headerlink" title="16) 检查变量是否为空："></a>16) 检查变量是否为空：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">variable === <span class="literal">null</span></span><br></pre></td></tr></table></figure>
+<h2 id="17-检查变量是否未定义："><a href="#17-检查变量是否未定义：" class="headerlink" title="17) 检查变量是否未定义："></a>17) 检查变量是否未定义：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typeof</span> variable === <span class="string">&quot;undefined&quot;</span></span><br></pre></td></tr></table></figure>
+<h2 id="18-查找数组中的最小值"><a href="#18-查找数组中的最小值" class="headerlink" title="18) 查找数组中的最小值"></a>18) 查找数组中的最小值</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Math</span>.<span class="title function_">min</span>(...array)</span><br></pre></td></tr></table></figure>
+<h2 id="19-检查数组是否为空："><a href="#19-检查数组是否为空：" class="headerlink" title="19) 检查数组是否为空："></a>19) 检查数组是否为空：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">array.<span class="property">length</span> === <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<h2 id="20-创建一个具有指定范围数字的新数组："><a href="#20-创建一个具有指定范围数字的新数组：" class="headerlink" title="20) 创建一个具有指定范围数字的新数组："></a>20) 创建一个具有指定范围数字的新数组：</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Array</span>.<span class="title function_">from</span>(&#123; <span class="attr">length</span>: n &#125;, <span class="function">(<span class="params">_, i</span>) =&gt;</span> i)</span><br></pre></td></tr></table></figure>
+<h2 id="🚀-关于我"><a href="#🚀-关于我" class="headerlink" title="🚀 关于我"></a>🚀 关于我</h2><p><a href="https://github.com/songhang666">戳</a><br>👩‍💻 🧠👯‍♀️🤔 💬 📫😄 ⚡️ </p>
+<h2 id="鸣谢"><a href="#鸣谢" class="headerlink" title="鸣谢"></a>鸣谢</h2><ul>
+<li><a href="https://dev.to/rammcodes/20-killer-javascript-one-liners-thatll-save-you-hours-of-coding-o14">Ram Maheshwari </a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>javascript</category>
+      </categories>
+      <tags>
+        <tag>javascript</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>初探remix + xata + tailwind</title>
+    <url>/remix-app/</url>
+    <content><![CDATA[<h1 id="本项目是基于remix构建前端页面-xata作为后端接口以及数据库支持的待办事项小应用demo-支持CRUD以及Authentication登录登出"><a href="#本项目是基于remix构建前端页面-xata作为后端接口以及数据库支持的待办事项小应用demo-支持CRUD以及Authentication登录登出" class="headerlink" title="本项目是基于remix构建前端页面 + xata作为后端接口以及数据库支持的待办事项小应用demo(支持CRUD以及Authentication登录登出)"></a>本项目是基于remix构建前端页面 + xata作为后端接口以及数据库支持的待办事项小应用demo(支持CRUD以及Authentication登录登出)</h1><ul>
+<li><a href="https://github.com/songhang666/remix-app">demo地址</a></li>
+</ul>
+<p><img src="https://s3.bmp.ovh/imgs/2023/02/20/666ba6dd4743ce1c.png"></p>
+<ul>
+<li><a href="https://remix.run/docs">Remix Docs</a></li>
+<li><a href="https://xata.io/">Xata.io</a></li>
+<li><a href="https://tailwindcss.com/">Tailwind Docs</a></li>
+</ul>
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">npm run install</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">npm run dev</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="创建数据库"><a href="#创建数据库" class="headerlink" title="创建数据库"></a>创建数据库</h1><ol>
+<li>点击 <code>Add database</code></li>
+</ol>
+<p><img src="https://s3.bmp.ovh/imgs/2023/02/20/561e1f4337d473a8.png"></p>
+<ol start="2">
+<li>创建两张表 <code>user和resolution</code>  ,定义字段以及把user表和resolution关联上</li>
+</ol>
+<p><img src="https://s3.bmp.ovh/imgs/2023/02/20/05675ab39462cde7.png"></p>
+<p>数据结构如下</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;id&quot;</span>: <span class="string">&quot;rec_abcdefg&quot;</span>,</span><br><span class="line">  <span class="string">&quot;year&quot;</span>: <span class="number">2023</span>,</span><br><span class="line">  <span class="string">&quot;resolution&quot;</span>: <span class="string">&quot;hi&quot;</span>,</span><br><span class="line">  <span class="string">&quot;isCompleted&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="初始化-Xata"><a href="#初始化-Xata" class="headerlink" title="初始化 Xata"></a>初始化 Xata</h1><ol>
+<li>安装xata.io&#x2F;cli  <code>npm install -g @xata.io/cli</code></li>
+<li>启动 <code>xata auth login</code></li>
+<li>选择 <code>Create a new API key in browser</code></li>
+<li>输入 <code>new-resolutions</code> 作为 <code>名称</code></li>
+<li>点击 <code>Create API key</code></li>
+<li>输入 <code>xata init</code></li>
+<li>选择 <code>new-resolutions</code> 作为 <code>数据库</code></li>
+<li>选择 <code>Generate TypeScript code</code> 作为 <code>code generation</code></li>
+<li>输入 <code>utils/xata.ts</code> 作为xata输出路径 <code>output file</code></li>
+<li>选择 <code>&lt;None&gt;</code></li>
+</ol>
+<p><code>xata init</code>命令生成独立的<code>utils/xata.ts</code>文件。这包含<code>xata cli</code>和所有数据模型的类型。如果将来对数据库模式进行了更改，请运行<code>xata codegen</code>命令来生成一个新的<code>xata.ts</code>文件。</p>
+<h1 id="用户注册"><a href="#用户注册" class="headerlink" title="用户注册"></a>用户注册</h1><ol>
+<li>安装 <code>npm install remix-auth remix-auth-form</code></li>
+<li>添加 <code>SESSION_SECRET</code> 到 <code>.env</code> 文件</li>
+<li>使用以下内容创建 <code>app/utils/session.server.ts</code></li>
+</ol>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;createCookieSessionStorage&#125; <span class="keyword">from</span> <span class="string">&quot;@remix-run/node&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> sessionStorage = <span class="title function_">createCookieSessionStorage</span>(&#123;</span><br><span class="line">    <span class="attr">cookie</span>: &#123;</span><br><span class="line">        <span class="attr">name</span>: <span class="string">&quot;_session&quot;</span>,</span><br><span class="line">        <span class="attr">sameSite</span>: <span class="string">&quot;lax&quot;</span>,</span><br><span class="line">        <span class="attr">path</span>: <span class="string">&quot;/&quot;</span>,</span><br><span class="line">        <span class="attr">httpOnly</span>: <span class="literal">true</span>,</span><br><span class="line">        <span class="attr">secrets</span>: [process.<span class="property">env</span>.<span class="property">SESSION_SECRET</span>],</span><br><span class="line">        <span class="attr">secure</span>: process.<span class="property">env</span>.<span class="property">NODE_ENV</span> === <span class="string">&quot;production&quot;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> &#123;sessionStorage&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="用户登录和登出"><a href="#用户登录和登出" class="headerlink" title="用户登录和登出"></a>用户登录和登出</h1><ol>
+<li>登录在 <code>app/routes/login.tsx</code> </li>
+<li>登出在 <code>app/routes/resolutions.tsx</code></li>
+</ol>
+<h2 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h2><p>  构建静态页面</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">npm run build</span><br></pre></td></tr></table></figure>
+
+<p>  启动生产环境</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">npm start</span><br></pre></td></tr></table></figure>
+
+<p>然后选择一个vps进行前端部署</p>
+]]></content>
+      <categories>
+        <category>React.js</category>
+      </categories>
+      <tags>
+        <tag>React.js</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Vite+Tailwind CSS创建一个react应用</title>
+    <url>/vite-react/</url>
+    <content><![CDATA[<h2 id="为什么使用Vite"><a href="#为什么使用Vite" class="headerlink" title="为什么使用Vite"></a>为什么使用<code>Vite</code></h2><p>大多数开发人员默认将Create React App (CRA)作为构建工具，用于在 React 中创建新项目并设置开发服务器。它提供了无需任何配置的构建设置。</p>
+<p><code>Create React App</code> 在运行在 <code>webpack</code> 上，它在提供服务之前捆绑了整个应用程序。因此，在大型代码库中，应用程序运行需要更多时间，并且文件更改反映在<code>热更新HMR</code>上需要很长时间。</p>
+<p>不同与 <code>CRA</code> ,<code>Vite</code> 不会在提供服务之前构建整个应用程序。它将应用程序模块分为两部分：依赖项和源代码。</p>
+<p>依赖项使用<code>esbuild</code> （用 <code>Go</code> 语言编写）预先捆绑，比基于 JavaScript 的捆绑器快 <code>10 到 100 倍</code>；由于依赖关系不会改变，它们也可以被缓存，这样就可以完全跳过预捆绑。</p>
+<p>源代码通过原生 ESM提供：源代码通常包含需要转换的非纯 JavaScript（例如 JSX、CSS），但并非所有都需要同时加载。所需的代码根据浏览器路由（基于路由的代码拆分）得到服务。</p>
+<p>这些差异导致使用 Vite 初始化、更新和构建 React 应用程序时体验更快。</p>
+<h2 id="第-1-步-–-创建您的项目文件夹"><a href="#第-1-步-–-创建您的项目文件夹" class="headerlink" title="第 1 步 – 创建您的项目文件夹"></a>第 1 步 – 创建您的项目文件夹</h2><p>打开您的终端，然后导航到您要构建项目的文件夹——例如 Desktop。在终端中输入以下命令，然后<code>enter</code>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm create vite@latest your-project-name -- --template react</span><br></pre></td></tr></table></figure>
+
+<p>上面的命令将创建您的项目文件夹。 ‌</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/40581923c83d6942.png"></p>
+<p><code>your-project-name</code>应该替换为您的项目名称。我的项目名称是<code>food-app</code></p>
+<p>‌请注意，我们曾经<code>-- --template react</code>指定我们正在使用 Vite 构建 React 应用程序。</p>
+<h2 id="第-2-步-–-进入到项目文件夹"><a href="#第-2-步-–-进入到项目文件夹" class="headerlink" title="第 2 步 – 进入到项目文件夹"></a>第 2 步 – 进入到项目文件夹</h2><p>在您的终端中输入以下命令，然后<code>enter</code>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> food-app</span><br></pre></td></tr></table></figure>
+
+<p>‌此命令将导航到您的项目文件夹。你应该有这个：</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/7c6440ab6eafa145.png"></p>
+<p>在终端中输入“cd food-app”以导航到“food-app”文件夹</p>
+<h2 id="第-3-步-–-安装-Tailwind-CSS-和其他依赖项"><a href="#第-3-步-–-安装-Tailwind-CSS-和其他依赖项" class="headerlink" title="第 3 步 – 安装 Tailwind CSS 和其他依赖项"></a><strong>第 3 步 – 安装 Tailwind CSS 和其他依赖项</strong></h2><p>在您的终端中输入以下命令，然后<code>enter</code>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install -D tailwindcss postcss autoprefixer</span><br></pre></td></tr></table></figure>
+
+<p>输入此命令以安装 tailwindcss、postcss 和 autoprefixer 依赖项</p>
+<p>此命令将安装以下内容：</p>
+<ul>
+<li>Tailwind CSS 框架</li>
+<li>Post CSS，它提供插件来执行不同的功能，例如 Vanilla CSS 中的前缀</li>
+<li>Autoprefixer，这是一个 PostCSS 插件，用于解析 CSS 并将前缀添加到 CSS 规则。</li>
+</ul>
+<p>您的文件夹在 VSCode 中应该如下所示：‌</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/98a0e9c231c2a6e5.png"></p>
+<p>确认您的 ‌ 中有以下<code>package.json</code>：</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/ae80c713114cd58f.png"></p>
+<p>请注意第 19 - 21 行的 autoprefixer、postcss 和 tailwindcss 依赖项。当您阅读本文时，版本号可能已更改。</p>
+<h2 id="第-4-步-–-生成配置文件"><a href="#第-4-步-–-生成配置文件" class="headerlink" title="第 4 步 – 生成配置文件"></a>第 4 步 – 生成配置文件</h2><p>在您的终端中输入以下命令，然后<code>enter</code>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npx tailwindcss init -p</span><br></pre></td></tr></table></figure>
+
+<p>此命令将生成 tailwindcss 配置文件</p>
+<p>此命令生成<code>tailwind.config.cjs</code>配置<code>postcss.config.cjs</code>文件，也称为配置文件。它们帮助您与项目互动并自定义所有内容。</p>
+<h2 id="第-5-步-–-配置-源路径"><a href="#第-5-步-–-配置-源路径" class="headerlink" title="第 5 步 – 配置 源路径"></a>第 5 步 – 配置 源路径</h2><p>将路径添加到文件中的所有模板文件<code>tailwind.config.cjs</code>。模板文件包括 HTML 模板、JavaScript 组件和其他包含 Tailwind 类名称的源文件。这是为了确保为相应的元素生成 vanilla CSS。</p>
+<p>你<code>tailwind.config.cjs</code>现在看起来像这样：</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/bdf9d32420e3b4f1.png"></p>
+<p>当前名为 tailwind.config.cjs 的配置文件，它包含 module.export 对象以使用内容、主题和插件等属性自定义 tailwind</p>
+<p>将其添加到您的内容部分。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="string">&quot;./index.html&quot;</span>,</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="string">&quot;./src/**/*.&#123;js,ts,jsx,tsx&#125;&quot;</span>,</span><br></pre></td></tr></table></figure>
+
+<p>添加到 content 属性的字符串以逗号分隔</p>
+<p>所以你的文件现在应该是这样的：</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/ba5a24028a16d315.png"><br>更新内容属性后的配置文件</p>
+<h2 id="第-6-步-–-将-Tailwind-指令添加到您的-CSS"><a href="#第-6-步-–-将-Tailwind-指令添加到您的-CSS" class="headerlink" title="第 6 步 – 将 Tailwind 指令添加到您的 CSS"></a><strong>第 6 步 – 将 Tailwind 指令添加到您的 CSS</strong></h2><p>Tailwind 指令是自定义的特定于 Tailwind 的语句，用于指示 CSS 如何运行。您需要为 Tailwind 的三个层添加指令。</p>
+<p><code>@tailwind base</code>注入Tailwind的基础样式和插件注册的基础样式，<code>@tailwind components</code>注入Tailwind的组件类和插件注册的组件类，同时<code>@tailwind utilities</code>注入Tailwind的实用类和插件注册的实用类。</p>
+<p>将以下语句添加到您的<code>./src/index.css</code>文件中：</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="keyword">@tailwind</span> base;</span><br><span class="line"><span class="keyword">@tailwind</span> components;</span><br><span class="line"><span class="keyword">@tailwind</span> utilities;</span><br></pre></td></tr></table></figure>
+
+<p>添加到 index.css 文件的三个指令 - @tailwind base、@tailwind components 和 @tailwind utilities</p>
+<p>您的<code>index.css</code>文件包含一些默认样式。您可以清除所有内容并粘贴上面的三行指令。</p>
+<h2 id="第-7-步-–-启动您的-Vite-服务器"><a href="#第-7-步-–-启动您的-Vite-服务器" class="headerlink" title="第 7 步 – 启动您的 Vite 服务器"></a>第 7 步 – 启动您的 Vite 服务器</h2><p><code>npm run dev</code>使用终端中的命令运行构建过程。您应该在终端中收到以下消息：</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/89fa9667e140b0c2.png"></p>
+<p>运行提供本地主机链接、网络和帮助的 Vite 服务器后收到的消息。</p>
+<p>按住<code>ctrl</code>键并单击本地的链接 – 这里是 <a href="http://127.0.0.1:5174。如果您这样做，它将在您的浏览器中打开一个新选项卡。">http://127.0.0.1:5174。如果您这样做，它将在您的浏览器中打开一个新选项卡。</a></p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/b55a2168310cc4a0.png"></p>
+<p>首次运行时的网页截图</p>
+<p>我们的样式被破坏了，因为我们清除了文件中的默认 CSS<code>index.css</code>以输入我们的指令。</p>
+<h2 id="第-8-步-–-开始编写-Tailwind-CSS"><a href="#第-8-步-–-开始编写-Tailwind-CSS" class="headerlink" title="第 8 步 – 开始编写 Tailwind CSS"></a>第 8 步 – 开始编写 Tailwind CSS</h2><p>您可以开始使用 Tailwind 的实用程序类来设计您的内容。导航到您的<code>App.jsx</code>文件，您应该在下面看到：</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/76851b1cc1551464.png"><br>App.jsx 文件的屏幕截图</p>
+<p>清除从第 9 行开始的 return 元素，并将其替换为下面的文本以测试您的 Tailwind 以了解它是否正常工作。输入这个：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">&lt;h1 className=<span class="string">&quot;text-3xl font-bold underline text-center&quot;</span>&gt;<span class="title class_">Hello</span> world!&lt;/h1&gt; </span><br></pre></td></tr></table></figure>
+
+<p>带有 tailwind css 类名的 h1 元素</p>
+<p>现在你有这个：</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/5cdfdad997a933ec.png"></p>
+<p>将 h1 元素添加到 App.jsx 文件</p>
+<p>根据上图，<code>text-3xl font-bold text-red-500 underline text-center</code>已作为类名添加到<code>div</code>元素中。这是编写 Tailwind CSS 样式的标准。</p>
+<p>您可以<a href="https://tailwindcss.com/docs">在此处</a>了解有关 Tailwind 类名的更多信息。您的浏览器应该会自动更新。</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/c9328d36aa83403f.png"></p>
+<p>添加h1元素后的网页截图</p>
+<p>您现在可以开始构建您的 React 项目并使用 Tailwind CSS 设置它们的样式。</p>
+<h2 id="🚀-关于我"><a href="#🚀-关于我" class="headerlink" title="🚀 关于我"></a>🚀 关于我</h2><p><a href="https://github.com/songhang666">戳</a><br>👩‍💻 🧠👯‍♀️🤔 💬 📫😄 ⚡️ </p>
+]]></content>
+      <categories>
+        <category>React.js</category>
+      </categories>
+      <tags>
+        <tag>React.js</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>收藏css工具类</title>
+    <url>/super-css/</url>
+    <content><![CDATA[<h1 id="实用css资源类-🌈"><a href="#实用css资源类-🌈" class="headerlink" title="实用css资源类 🌈"></a>实用css资源类 🌈</h1><blockquote>
+<p>精选的 70 个基于 Web 的实用工具的集合<br>每个都将生成纯 CSS，而不需要 JS 或任何外部库。</p>
+<p>完全归功于这些应用程序背后的作者</p>
+</blockquote>
+<h3 id="引用"><a href="#引用" class="headerlink" title="引用"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#contents"></a>引用</h3><ul>
+<li><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#property-generators">Property Generators</a></li>
+<li><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#animations">Animations</a></li>
+<li><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#backgrounds">Backgrounds</a></li>
+<li><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#colors">Color Tools</a></li>
+<li><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#typography">Typography</a></li>
+<li><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#loaders">Loaders</a></li>
+<li><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#layouts">Layouts</a></li>
+<li><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#informative">Informative</a></li>
+</ul>
+<h2 id="属性生成器"><a href="#属性生成器" class="headerlink" title="属性生成器"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#property-generators"></a>属性生成器</h2><h3 id="1-Neumorphism"><a href="#1-Neumorphism" class="headerlink" title="1. Neumorphism"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#1-neumorphism"></a>1. <a href="https://neumorphism.io/">Neumorphism</a></h3><blockquote>
+<p>使用嵌入阴影生成 Soft-UI CSS 样式，作者 <a href="https://github.com/adamgiebl">@adamgiebl</a></p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--UYyR8aE8--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/vPH0YMV/32-neumorphism.gif" alt="screenshot"></p>
+<h3 id="2-Shaddows-Brumm"><a href="#2-Shaddows-Brumm" class="headerlink" title="2. Shaddows Brumm"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#2-shaddows-brumm"></a>2. <a href="https://shadows.brumm.af/">Shaddows Brumm</a></h3><blockquote>
+<p>制作和预览精美平滑的阴影 <a href="https://github.com/brumm">@brumm</a></p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--Na5xmzk1--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/vD2rd3G/25-shadows-brum.gif" alt="screenshot"></p>
+<h3 id="3-Fancy-Border-Radius"><a href="#3-Fancy-Border-Radius" class="headerlink" title="3. Fancy Border Radius"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#3-fancy-border-radius"></a>3. <a href="https://9elements.github.io/fancy-border-radius/">Fancy Border Radius</a></h3><blockquote>
+<p>生成具有边界半径的形状对象 <a href="https://github.com/9elements">@9Elements</a>. 类似于 <a href="https://www.blobmaker.app/">BlobMaker</a></p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--J12yXx0M--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/0KQPHHh/35-fancy-border-radius.gif" alt="screenshot"></p>
+<h3 id="4-Glow-Generator"><a href="#4-Glow-Generator" class="headerlink" title="4. Glow Generator"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#4-glow-generator"></a>4. <a href="https://cssbud.com/css-generator/css-glow-generator/">Glow Generator</a></h3><blockquote>
+<p>生成纯CSS，跨浏览器发光效果</p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--6-ZEP296--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/DDfw0Mz/54-glow-generator.gif" alt="screenshot"></p>
+<h3 id="5-Clothoid-Corners"><a href="#5-Clothoid-Corners" class="headerlink" title="5. Clothoid Corners"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#5-clothoid-corners"></a>5. <a href="https://onotakehiko.dev/clothoid/">Clothoid Corners</a></h3><blockquote>
+<p>通过 CSS 剪辑路径生成回旋圆角 <a href="https://onotakehiko.com/">Takehiko Ono</a></p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--TsXizuq4--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/HHR644q/33-clothoid.gif" alt="screenshot"></p>
+<h3 id="6-Glassmorphism"><a href="#6-Glassmorphism" class="headerlink" title="6. Glassmorphism"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#6-glassmorphism"></a>6. <a href="https://hype4.academy/tools/glassmorphism-generator">Glassmorphism</a></h3><blockquote>
+<p>构建半透明、模糊的玻璃状背景。类似于 <a href="https://ui.glass/generator/">ui.glass&#x2F;generator</a></p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--Oe8GzKEx--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/89R9Ckp/55-css-glow.gif" alt="screenshot"></p>
+<h3 id="7-Clipy"><a href="#7-Clipy" class="headerlink" title="7. Clipy"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#7-clipy"></a>7. <a href="https://bennettfeely.com/clippy/">Clipy</a></h3><blockquote>
+<p>使用剪辑路径生成复杂形状的对象 <a href="https://github.com/bennettfeely">@bennettfeely</a></p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--QEXoRxlq--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/fHjj3FP/34-clippy.gif" alt="screenshot"></p>
+<h3 id="8-CSS-Filters"><a href="#8-CSS-Filters" class="headerlink" title="8. CSS Filters"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#8-css-filters"></a>8. <a href="https://www.cssfilters.co/">CSS Filters</a></h3><blockquote>
+<p>生成和预览纯 CSS Instagram 风格的照片滤镜 <a href="https://github.com/ghosh">@ghosh</a></p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--4zAmfaWU--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/4Nwr01c/37-cssfilters.gif" alt="screenshot"></p>
+<h3 id="9-Base64-Image"><a href="#9-Base64-Image" class="headerlink" title="9. Base64 Image"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#9-base64-image"></a>9. <a href="https://www.base64-image.de/">Base64 Image</a></h3><blockquote>
+<p>直接在 CSS 中使用 Base64 对图像进行编码</p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--R-HSoTjG--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/FgTRfQd/38-base64-image.gif" alt="screenshot"></p>
+<h3 id="10-Quantity-Queries"><a href="#10-Quantity-Queries" class="headerlink" title="10. Quantity Queries"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#10-quantity-queries"></a>10. <a href="https://quantityqueries.com/">Quantity Queries</a></h3><blockquote>
+<p>生成基于数量的 CSS 查询，作者 <a href="https://github.com/drewminns">@drewminns</a></p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--XZ9CxA1F--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/wK77hT7/39-quantityqueries.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--XZ9CxA1F--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/wK77hT7/39-quantityqueries.png" alt="screenshot"></a></p>
+<hr>
+<h2 id="Animations"><a href="#Animations" class="headerlink" title="Animations"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#animations"></a>Animations</h2><h3 id="11-Animista"><a href="#11-Animista" class="headerlink" title="11. Animista"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#11-animista"></a>11. <a href="https://animista.net/play">Animista</a></h3><blockquote>
+<p>CSS 动画实时预览和生成器, by <a href="https://www.linkedin.com/in/anatravas">Ana T</a></p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--jP3cq6-G--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/zQ0y2mk/1-animista.gif" alt="screenshot"></p>
+<h3 id="12-Cubic-Bezier"><a href="#12-Cubic-Bezier" class="headerlink" title="12. Cubic-Bezier"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#12-cubicbezier"></a>12. <a href="https://cubic-bezier.com/">Cubic-Bezier</a></h3><blockquote>
+<p>预览并生成高级立方贝塞尔曲线动画 <a href="https://github.com/LeaVerou">@LeaVerou</a></p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--ePy0dVVB--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/bLHhQ41/2-cubic-besier.gif" alt="screenshot"></p>
+<h3 id="13-Keyframes"><a href="#13-Keyframes" class="headerlink" title="13. Keyframes"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#13-keyframes"></a>13. <a href="https://keyframes.app/animate">Keyframes</a></h3><blockquote>
+<p>高级关键帧动画制作器 <a href="https://github.com/mitchas">@mitchas</a></p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--LbzewLeX--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/dK3Lxgr/3-keyframes.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--LbzewLeX--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/dK3Lxgr/3-keyframes.png" alt="screenshot"></a></p>
+<h3 id="14-Wait-Animate"><a href="#14-Wait-Animate" class="headerlink" title="14. Wait Animate"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#14-wait-animate"></a>14. <a href="https://waitanimate.wstone.uk/">Wait Animate</a></h3><blockquote>
+<p>使用 animation-delay 来模拟延迟 <a href="https://github.com/will-stone">@will-stone</a></p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--Rf0mjP6O--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/NZPMwf8/4-waitanimate.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--Rf0mjP6O--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/NZPMwf8/4-waitanimate.png" alt="screenshot"></a></p>
+<h3 id="15-Transition-Style"><a href="#15-Transition-Style" class="headerlink" title="15. Transition.Style"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#15-transitionstyle"></a>15. <a href="https://www.transition.style/">Transition.Style</a></h3><blockquote>
+<p>复制粘贴过渡动画 <a href="https://github.com/argyleink">@argyleink</a></p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--B8PTm6q9--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/YPwRgVW/5-transition.gif" alt="screenshot"></p>
+<hr>
+<h2 id="Backgrounds"><a href="#Backgrounds" class="headerlink" title="Backgrounds"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#backgrounds"></a>Backgrounds</h2><h3 id="16-Hero-Patterns"><a href="#16-Hero-Patterns" class="headerlink" title="16. Hero Patterns"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#16-hero-patterns"></a>16. <a href="https://heropatterns.com/">Hero Patterns</a></h3><blockquote>
+<p>查找和自定义简单的纯 CSS 图案背景 <a href="https://twitter.com/steveschoger">@steveschoger</a></p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--g-q7ryMB--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/gdnKVKG/56-hero-backgrounds.gif" alt="screenshot"></p>
+<h3 id="17-Haikei"><a href="#17-Haikei" class="headerlink" title="17. Haikei"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#17-haikei"></a>17. <a href="https://app.haikei.app/">Haikei</a></h3><blockquote>
+<p>生成独特的有机 SVG 横幅和背景 (类似于 <a href="https://www.shapedivider.app/">Shape Divider</a>)</p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--_G2SeZ1t--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/dQqztYV/14-haikei.gif" alt="screenshot"></p>
+<h3 id="18-Pattern-Generator"><a href="#18-Pattern-Generator" class="headerlink" title="18. Pattern Generator"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#18-pattern-generator"></a>18. <a href="https://doodad.dev/pattern-generator/">Pattern Generator</a></h3><blockquote>
+<p>高级模式生成器</p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--q1anKO37--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/th8khVj/15-pattern-generator.gif" alt="screenshot"></p>
+<h3 id="19-CSS-Pattern"><a href="#19-CSS-Pattern" class="headerlink" title="19. CSS Pattern"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#19-css-pattern"></a>19. <a href="https://css-pattern.com/">CSS Pattern</a></h3><blockquote>
+<p>预先制作的纯 CSS 图案背景集合 <a href="https://github.com/Afif13">@Afif13</a></p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--0e3OTUZ5--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/Hh37hbb/16-css-pattern.gif" alt="screenshot"></p>
+<h3 id="20-Patternizer"><a href="#20-Patternizer" class="headerlink" title="20. Patternizer"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#20-patternizer"></a>20. <a href="https://patternizer.com/">Patternizer</a></h3><blockquote>
+<p>构建条纹背景 <a href="https://twitter.com/matthewlein">@matthewlein</a></p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--Q25p_O4o--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/PMMQC6F/17-patternizer.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--Q25p_O4o--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/PMMQC6F/17-patternizer.png" alt="screenshot"></a></p>
+<h3 id="21-Patternify"><a href="#21-Patternify" class="headerlink" title="21. Patternify"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#21-patternify"></a>21. <a href="http://www.patternify.com/">Patternify</a></h3><blockquote>
+<p>建立自定义css模式 <a href="https://twitter.com/SachaGreif">@SachaGreif</a></p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--57SDR5c4--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/2P45cZT/18-patternify.gif" alt="screenshot"></p>
+<h3 id="22-Animated-BG"><a href="#22-Animated-BG" class="headerlink" title="22. Animated BG"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#22-animated-bg"></a>22. <a href="https://wweb.dev/resources/animated-css-background-generator/">Animated BG</a></h3><blockquote>
+<p>生成模糊动画纯 CSS 背景<a href="https://github.com/Vincenius">@Vincenius</a></p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--9DH42eR8--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/KFwrZQS/19-animated-bg.gif" alt="screenshot"></p>
+<h3 id="23-Trianglify"><a href="#23-Trianglify" class="headerlink" title="23. Trianglify"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#23-trianglify"></a>23. <a href="https://trianglify.io/">Trianglify</a></h3><blockquote>
+<p>几何背景设计器（注意：仅 semmi-free） <a href="https://github.com/qrohlf">@qrohlf</a></p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--qoYH9R6n--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/6F812Dd/20-trianglify.gif" alt="screenshot"></p>
+<h3 id="24-Animated-Backgrounds"><a href="#24-Animated-Backgrounds" class="headerlink" title="24. Animated Backgrounds"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#24-animated-backgrounds"></a>24. <a href="https://animatedbackgrounds.me/">Animated Backgrounds</a></h3><blockquote>
+<p>纯CSS背景动画合集</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--bUzQni9a--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/YhxFmVw/21-animatedbackgrounds.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--bUzQni9a--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/YhxFmVw/21-animatedbackgrounds.png" alt="screenshot"></a></p>
+<h3 id="25-Magic-Pattern-CSS-Backgrounds"><a href="#25-Magic-Pattern-CSS-Backgrounds" class="headerlink" title="25. Magic Pattern CSS Backgrounds"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#25-magic-pattern-css-backgrounds"></a>25. <a href="https://www.magicpattern.design/tools/css-backgrounds">Magic Pattern CSS Backgrounds</a></h3><blockquote>
+<p>可重复使用的基于 SVG 的&#x2F;纯 CSS 背景图案的集合，带有可视化浏览器</p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--g-q7ryMB--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/gdnKVKG/56-hero-backgrounds.gif" alt="screenshot"></p>
+<hr>
+<h2 id="颜色"><a href="#颜色" class="headerlink" title="颜色"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#colors"></a>颜色</h2><h3 id="26-CSS-Gradient"><a href="#26-CSS-Gradient" class="headerlink" title="26. CSS Gradient"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#26-css-gradient"></a>26. <a href="https://cssgradient.io/">CSS Gradient</a></h3><blockquote>
+<p>高级 CSS 渐变生成器</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--aIMLYGRS--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/xJG5cCv/6-cssgradient.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--aIMLYGRS--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/xJG5cCv/6-cssgradient.png" alt="screenshot"></a></p>
+<h3 id="27-Parametric-Mixer"><a href="#27-Parametric-Mixer" class="headerlink" title="27. Parametric Mixer"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#27-parametric-mixer"></a>27. <a href="https://colormixer.web.app/">Parametric Mixer</a></h3><blockquote>
+<p>基于均衡器的 CSS 颜色生成器  <a href="https://twitter.com/dawidwoldu">@dawidwoldu</a></p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--iylg2pR8--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/k6T022D/60-parametric-mixer.gif" alt="screenshot"></p>
+<h3 id="28-Palettte"><a href="#28-Palettte" class="headerlink" title="28. Palettte."></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#28-palettte"></a>28. <a href="https://palettte.app/">Palettte.</a></h3><blockquote>
+<p>开发和调整配色方案</p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--Ai_QGkZI--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/wr7Zhdz/61-palettte.gif" alt="screenshot"></p>
+<h3 id="29-Paletton"><a href="#29-Paletton" class="headerlink" title="29. Paletton"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#29-paletton"></a>29. <a href="https://paletton.com/">Paletton</a></h3><blockquote>
+<p>使用相反或吸引颜色的调色板生成器</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--1a1v1Cgq--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/qBYcsgk/7-paletton.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--1a1v1Cgq--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/qBYcsgk/7-paletton.png" alt="screenshot"></a></p>
+<h3 id="30-Grabient"><a href="#30-Grabient" class="headerlink" title="30. Grabient"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#30-grabient"></a>30. <a href="https://www.grabient.com/">Grabient</a></h3><blockquote>
+<p>样本梯度渐变<br>类似于 <a href="https://webkul.github.io/coolhue/">CoolHue</a>, <a href="https://webgradients.com/">WebGradients.com</a>, <a href="https://gradienthunt.com/">GradientHunt</a>, <a href="https://gradientbuttons.colorion.co/">GradientButtons</a> and <a href="https://uigradients.com/">UI gradients</a></p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--O-kfrIXZ--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/Qj88dCZ/8-grabient.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--O-kfrIXZ--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/Qj88dCZ/8-grabient.png" alt="screenshot"></a></p>
+<h3 id="31-Color-Hunt"><a href="#31-Color-Hunt" class="headerlink" title="31. Color Hunt"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#31-color-hunt"></a>31. <a href="https://colorhunt.co/">Color Hunt</a></h3><blockquote>
+<p>另一个调色板生成器</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--Rp-JMH8n--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/ZVWbL7s/9-colorhunt.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--Rp-JMH8n--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/ZVWbL7s/9-colorhunt.png" alt="screenshot"></a></p>
+<h3 id="32-Easing-Gradients"><a href="#32-Easing-Gradients" class="headerlink" title="32. Easing Gradients"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#32-easing-gradients"></a>32. <a href="https://larsenwork.com/easing-gradients/#editor">Easing Gradients</a></h3><blockquote>
+<p>三次贝塞尔风格的纯 CSS 渐变 <a href="https://github.com/larsenwork">@larsenwork</a></p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--t_SGRS5O--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/bdr9R8P/10-easing-gradients.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--t_SGRS5O--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/bdr9R8P/10-easing-gradients.png" alt="screenshot"></a></p>
+<h3 id="33-Flat-UI-Colors"><a href="#33-Flat-UI-Colors" class="headerlink" title="33. Flat UI Colors"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#33-flat-ui-colors"></a>33. <a href="https://flatuicolors.com/">Flat UI Colors</a></h3><blockquote>
+<p>平面样式精选调色板 <a href="https://twitter.com/ahmetsulek">@ahmetsulek</a></p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--7TnYbD02--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/t3TwmWw/11-flatuicolors.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--7TnYbD02--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/t3TwmWw/11-flatuicolors.png" alt="screenshot"></a></p>
+<h3 id="34-Color-Tools"><a href="#34-Color-Tools" class="headerlink" title="34. Color Tools"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#34-color-tools"></a>34. <a href="https://colordesigner.io/tools">Color Tools</a></h3><blockquote>
+<p>混合、提取、转换和生成颜色</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--ix61Nmdc--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/1ntDHZc/12-colordesigner.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--ix61Nmdc--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/1ntDHZc/12-colordesigner.png" alt="screenshot"></a></p>
+<h3 id="35-ColorPalettes-Earth"><a href="#35-ColorPalettes-Earth" class="headerlink" title="35. ColorPalettes.Earth"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#35-colorpalettesearth"></a>35. <a href="https://colorpalettes.earth/">ColorPalettes.Earth</a></h3><blockquote>
+<p>来自大自然的天然色盘</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--ykiqt7mW--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/tJ0JMK6/13-eart-palettes.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--ykiqt7mW--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/tJ0JMK6/13-eart-palettes.png" alt="screenshot"></a></p>
+<hr>
+<h2 id="Typography"><a href="#Typography" class="headerlink" title="Typography"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#typography"></a>Typography</h2><h3 id="36-Font-Joy"><a href="#36-Font-Joy" class="headerlink" title="36. Font Joy"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#36-font-joy"></a>36. <a href="https://fontjoy.com/">Font Joy</a></h3><blockquote>
+<p>发现和预览各种字体配对 <a href="https://github.com/Jack000">@Jack000</a></p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--QKN3XjRt--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/2jGJdDD/22-font-joy.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--QKN3XjRt--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/2jGJdDD/22-font-joy.png" alt="screenshot"></a></p>
+<h3 id="37-Type-set-With-Me"><a href="#37-Type-set-With-Me" class="headerlink" title="37. Type set With Me"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#37-type-set-with-me"></a>37. <a href="https://typesetwith.me/">Type set With Me</a></h3><blockquote>
+<p>排版和易读性沙箱 <a href="https://github.com/tsmith512">@tsmith512</a></p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--AjjL_lsL--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/5vFDphR/23-typesetwith.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--AjjL_lsL--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/5vFDphR/23-typesetwith.png" alt="screenshot"></a></p>
+<h3 id="38-Type-Scale"><a href="#38-Type-Scale" class="headerlink" title="38. Type Scale"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#38-type-scale"></a>38. <a href="https://type-scale.com/">Type Scale</a></h3><blockquote>
+<p>生成标题&#x2F;正文字体大小 <a href="https://github.com/jeremychurch">@jeremychurch</a></p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--c1SRCk0x--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/4809qtW/24-typescale.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--c1SRCk0x--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/4809qtW/24-typescale.png" alt="screenshot"></a></p>
+<h3 id="39-Glyphter"><a href="#39-Glyphter" class="headerlink" title="39. Glyphter"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#39-glyphter"></a>39. <a href="https://glyphter.com/">Glyphter</a></h3><blockquote>
+<p>从 SVG 图形创建图标字体</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--t3WLtHTu--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/x3myt3N/25-glyphter.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--t3WLtHTu--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/x3myt3N/25-glyphter.png" alt="screenshot"></a></p>
+<h3 id="40-Font-Library"><a href="#40-Font-Library" class="headerlink" title="40. Font-Library"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#40-fontlibrary"></a>40. <a href="https://katydecorah.com/font-library">Font-Library</a></h3><blockquote>
+<p>标记的谷歌字体库 <a href="https://github.com/katydecorah">@katydecorah</a></p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--cO-ciOHn--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/gPCghyQ/26-font-library.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--cO-ciOHn--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/gPCghyQ/26-font-library.png" alt="screenshot"></a></p>
+<h3 id="41-Glitter"><a href="#41-Glitter" class="headerlink" title="41. Glitter"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#41-glitter"></a>41. <a href="https://wh0.github.io/glitter/">Glitter</a></h3><blockquote>
+<p>导出 90 年代风格的 Glitter 文本</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--E9zAbrXR--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/GFyMm5k/27-glitter.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--E9zAbrXR--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/GFyMm5k/27-glitter.png" alt="screenshot"></a></p>
+<hr>
+<h2 id="Loaders"><a href="#Loaders" class="headerlink" title="Loaders"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#loaders"></a>Loaders</h2><h3 id="42-Spin-Kit"><a href="#42-Spin-Kit" class="headerlink" title="42. Spin Kit"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#42-spin-kit"></a>42. <a href="https://tobiasahlin.com/spinkit/">Spin Kit</a></h3><blockquote>
+<p>选择干净的 CSS 加载动画</p>
+</blockquote>
+<p>GIF</p>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--1tLzrsmy--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/t2CJLg0/28-spinkit.gif" alt="screenshot"></p>
+<h3 id="43-Whirl"><a href="#43-Whirl" class="headerlink" title="43. Whirl"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#43-whirl"></a>43. <a href="https://whirl.netlify.app/">Whirl</a></h3><blockquote>
+<p>100 多个 CSS 加载动画，用于复制粘贴</p>
+</blockquote>
+<p>GIF</p>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--E7FAY-Du--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/rvG8Bzx/29-whirl.gif" alt="screenshot"></p>
+<h3 id="44-Loader-Generator"><a href="#44-Loader-Generator" class="headerlink" title="44. Loader Generator"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#44-loader-generator"></a>44. <a href="https://www.cssportal.com/css-loader-generator/">Loader Generator</a></h3><blockquote>
+<p>预构建和定制的纯 CSS 加载器</p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s---OGzrSyx--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/7jwBBj4/30-loader-generator.gif" alt="screenshot"></p>
+<h3 id="45-lukehaas-CSS-Loaders"><a href="#45-lukehaas-CSS-Loaders" class="headerlink" title="45. lukehaas - CSS-Loaders"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#45-lukehaas-cssloaders"></a>45. <a href="https://projects.lukehaas.me/css-loaders/">lukehaas - CSS-Loaders</a></h3><blockquote>
+<p>简单的纯CSS加载动画</p>
+</blockquote>
+<p><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--N4Q5jXBS--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_66%2Cw_880/https://i.ibb.co/M1YWH6d/31-lukehaas-single-element.gif" alt="screenshot"></p>
+<h3 id="46-CSSLoaders"><a href="#46-CSSLoaders" class="headerlink" title="46. CSSLoaders"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#46-cssloaders"></a>46. <a href="https://cssloaders.github.io/">CSSLoaders</a></h3><blockquote>
+<p>复杂的纯 CSS 加载器</p>
+</blockquote>
+<h3 id="47-loading-io-x2F-css"><a href="#47-loading-io-x2F-css" class="headerlink" title="47. loading.io&#x2F;css"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#47-loadingiocss"></a>47. <a href="https://loading.io/css/">loading.io&#x2F;css</a></h3><blockquote>
+<p>常见加载器的 CSS 实现</p>
+</blockquote>
+<hr>
+<h2 id="布局"><a href="#布局" class="headerlink" title="布局"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#layouts"></a>布局</h2><h3 id="48-CSS-Grid-Garden"><a href="#48-CSS-Grid-Garden" class="headerlink" title="48. CSS Grid Garden"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#48-css-grid-garden"></a>48. <a href="https://cssgridgarden.com/">CSS Grid Garden</a></h3><blockquote>
+<p>用于学习 CSS 网格的交互式游戏 <a href="https://github.com/thomaspark">@thomaspark</a></p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--XbPT5Nu9--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/Ph6kx0X/40-css-gridgarden.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--XbPT5Nu9--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/Ph6kx0X/40-css-gridgarden.png" alt="screenshot"></a></p>
+<h3 id="49-FlexboxFroggy"><a href="#49-FlexboxFroggy" class="headerlink" title="49. FlexboxFroggy"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#49-flexboxfroggy"></a>49. <a href="https://flexboxfroggy.com/">FlexboxFroggy</a></h3><blockquote>
+<p>用于学习 flexbox 的互动游戏 <a href="https://github.com/thomaspark">@thomaspark</a></p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--tmq25h-D--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/SPy0Qdg/41-flexbox-froggy.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--tmq25h-D--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/SPy0Qdg/41-flexbox-froggy.png" alt="screenshot"></a></p>
+<h3 id="50-Flexplorer"><a href="#50-Flexplorer" class="headerlink" title="50. Flexplorer"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#50-flexplorer"></a>50. <a href="https://bennettfeely.com/flexplorer/">Flexplorer</a></h3><blockquote>
+<p>可视化 flexbox 演示 <a href="https://twitter.com/bennettfeely">@bennettfeely</a></p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--3W35gDvy--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/dbqDnnZ/42-flexsplorer.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--3W35gDvy--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/dbqDnnZ/42-flexsplorer.png" alt="screenshot"></a></p>
+<h3 id="51-Flexulator"><a href="#51-Flexulator" class="headerlink" title="51. Flexulator"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#51-flexulator"></a>51. <a href="https://www.flexulator.com/">Flexulator</a></h3><blockquote>
+<p>交互式 CSS Flexbox 空间分布计算器 <a href="https://github.com/telagraphic">@telagraphic</a></p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--ufBH0Yks--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/pZNwVZj/43-flexulator.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--ufBH0Yks--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/pZNwVZj/43-flexulator.png" alt="screenshot"></a></p>
+<h3 id="52-Grid-Generator"><a href="#52-Grid-Generator" class="headerlink" title="52. Grid Generator"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#52-grid-generator"></a>52. <a href="https://cssgrid-generator.netlify.app/">Grid Generator</a></h3><blockquote>
+<p>使用 CSS grid-template 属性制作网格 <a href="https://github.com/sdras">@sdras</a> (类似于 <a href="https://grid.layoutit.com/">grid.layoutit.com</a>)</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--fI_cxWBm--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/59t7mw0/44-grid-generator.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--fI_cxWBm--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/59t7mw0/44-grid-generator.png" alt="screenshot"></a></p>
+<h3 id="53-Layout-Generator"><a href="#53-Layout-Generator" class="headerlink" title="53. Layout Generator"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#53-layout-generator"></a>53. <a href="https://layout.bradwoods.io/">Layout Generator</a></h3><blockquote>
+<p>现代 CSS 布局工具</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--jLSjzv3Q--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/4mzZWMT/45-layout-generator.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--jLSjzv3Q--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/4mzZWMT/45-layout-generator.png" alt="screenshot"></a></p>
+<h3 id="54-Box-Model-Diagram"><a href="#54-Box-Model-Diagram" class="headerlink" title="54. Box Model Diagram"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#54-box-model-diagram"></a>54. <a href="https://codepen.io/carolineartz/full/ogVXZj">Box Model Diagram</a></h3><blockquote>
+<p>只是一个视觉框模型演示</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--rtMWKbAk--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/FK0p8r9/46-box-model.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--rtMWKbAk--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/FK0p8r9/46-box-model.png" alt="screenshot"></a></p>
+<hr>
+<h2 id="Informative"><a href="#Informative" class="headerlink" title="Informative"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#informative"></a>Informative</h2><h3 id="55-CSS-Timeline"><a href="#55-CSS-Timeline" class="headerlink" title="55. CSS Timeline"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#55-css-timeline"></a>55. <a href="https://css-timeline.vercel.app/">CSS Timeline</a></h3><blockquote>
+<p>CSS 的历史</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--OR9x8AqS--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/fSHtrQ8/47-css-timeline.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--OR9x8AqS--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/fSHtrQ8/47-css-timeline.png" alt="screenshot"></a></p>
+<h3 id="56-Screen-Size-Map"><a href="#56-Screen-Size-Map" class="headerlink" title="56. Screen Size Map"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#56-screen-size-map"></a>56. <a href="https://screensizemap.com/">Screen Size Map</a></h3><blockquote>
+<p>查看响应式设计的流行屏幕尺寸</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--XkcVFBLS--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/gvt1rX9/48-screensizemap.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--XkcVFBLS--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/gvt1rX9/48-screensizemap.png" alt="screenshot"></a></p>
+<h3 id="57-CSS-Ruler"><a href="#57-CSS-Ruler" class="headerlink" title="57. CSS Ruler"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#57-css-ruler"></a>57. <a href="https://katydecorah.com/css-ruler/">CSS Ruler</a></h3><blockquote>
+<p>相互预览各种 CSS 单元</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--818Mzngp--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/RbVTKXk/49-css-ruler.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--818Mzngp--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/RbVTKXk/49-css-ruler.png" alt="screenshot"></a></p>
+<h3 id="58-bada55"><a href="#58-bada55" class="headerlink" title="58. bada55"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#58-bada55"></a>58. <a href="http://bada55.io/">bada55</a></h3><blockquote>
+<p>非常有趣的 CSS 十六进制颜色代码列表<br>另请参阅 <a href="https://colors.lol/">colors.lol</a> 了解一些过于描述性的颜色托盘</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--tNDmts4Y--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/WW3vXs6/50-bada55.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--tNDmts4Y--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/WW3vXs6/50-bada55.png" alt="screenshot"></a></p>
+<h3 id="59-Who-can-use"><a href="#59-Who-can-use" class="headerlink" title="59. Who can use?"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#59-who-can-use"></a>59. <a href="https://www.whocanuse.com/">Who can use?</a></h3><blockquote>
+<p>检查给定颜色组合的可访问性等级，类似 <a href="https://colorable.jxnblk.com/">Colorable</a></p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--mlvrVJE7--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/ZGVxFvf/59-who-can-use.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--mlvrVJE7--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/ZGVxFvf/59-who-can-use.png" alt="screenshot"></a></p>
+<h3 id="60-Can-I-use"><a href="#60-Can-I-use" class="headerlink" title="60. Can I use?"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#60-can-i-use"></a>60. <a href="https://caniuse.com/">Can I use?</a></h3><blockquote>
+<p>各种 CSS、JS、HTML 和 Web 功能的浏览器兼容性检查</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--4z6jX5kW--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/sg6MLP3/57-can-i-use.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--4z6jX5kW--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/sg6MLP3/57-can-i-use.png" alt="screenshot"></a></p>
+<h3 id="61-Can-I-email"><a href="#61-Can-I-email" class="headerlink" title="61. Can I email?"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#61-can-i-email"></a>61. <a href="https://www.caniemail.com/">Can I email?</a></h3><blockquote>
+<p>类似于 <a href="https://caniuse.com/">Can I use?</a>, 但检查给定的 CSS 属性（或 HTML 元素）是否与电子邮件客户端兼容</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--C3cFef5S--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/h7qwsnb/58-can-i-email.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--C3cFef5S--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/h7qwsnb/58-can-i-email.png" alt="screenshot"></a></p>
+<h3 id="62-CSS-Processing-Tools"><a href="#62-CSS-Processing-Tools" class="headerlink" title="62. CSS Processing Tools"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#62-css-processing-tools"></a>62. <a href="https://codebeautify.org/css-tools">CSS Processing Tools</a></h3><blockquote>
+<p>与任何其他 CSS 语言相互转换</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--X_qGDV20--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/82F5fSG/51-css-tools.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--X_qGDV20--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/82F5fSG/51-css-tools.png" alt="screenshot"></a></p>
+<h3 id="63-Unused-CSS"><a href="#63-Unused-CSS" class="headerlink" title="63. Unused CSS"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#63-unused-css"></a>63. <a href="https://unused-css.com/">Unused CSS</a></h3><blockquote>
+<p>在您的站点中搜索未使用的 CSS，并显示统计信息</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--TfAx3XqE--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/z4MYSs5/52-unused-css.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--TfAx3XqE--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/z4MYSs5/52-unused-css.png" alt="screenshot"></a></p>
+<h3 id="64-Component-Gallery"><a href="#64-Component-Gallery" class="headerlink" title="64. Component.Gallery"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#64-componentgallery"></a>64. <a href="https://component.gallery/">Component.Gallery</a></h3><blockquote>
+<p>全局组件搜索</p>
+</blockquote>
+<p><a href="https://res.cloudinary.com/practicaldev/image/fetch/s--LjP2P7-3--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/YPLHzd8/53-component-gallery.png"><img src="https://res.cloudinary.com/practicaldev/image/fetch/s--LjP2P7-3--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://i.ibb.co/YPLHzd8/53-component-gallery.png" alt="screenshot"></a></p>
+<h3 id="65-Design-System-Gallery"><a href="#65-Design-System-Gallery" class="headerlink" title="65. Design System Gallery"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#65-design-system-gallery"></a>65. <a href="https://designsystemsrepo.com/design-systems-recent/">Design System Gallery</a></h3><blockquote>
+<p>一系列开放的设计系统，以获取灵感</p>
+</blockquote>
+<h3 id="66-Checklist-design"><a href="#66-Checklist-design" class="headerlink" title="66. Checklist.design"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#66-checklistdesign"></a>66. <a href="https://www.checklist.design/">Checklist.design</a></h3><blockquote>
+<p>以清单形式组织的设计最佳实践集合</p>
+</blockquote>
+<h3 id="67-Glyphs"><a href="#67-Glyphs" class="headerlink" title="67. Glyphs"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#67-glyphs"></a>67. <a href="https://css-tricks.com/snippets/html/glyphs/">Glyphs</a></h3><blockquote>
+<p>CSS 字形字符代码列表 (另请参阅库图标 <a href="https://glyphsearch.com/">GlyphSearch</a> )</p>
+</blockquote>
+<h3 id="68-CSS-Tricks-com"><a href="#68-CSS-Tricks-com" class="headerlink" title="68. CSS-Tricks.com"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#68-csstrickscom"></a>68. <a href="https://css-tricks.com/">CSS-Tricks.com</a></h3><blockquote>
+<p>最好的 CSS 博客</p>
+</blockquote>
+<h3 id="69-Curated-Design-Tools"><a href="#69-Curated-Design-Tools" class="headerlink" title="69. Curated Design Tools"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#69-curated-design-tools"></a>69. <a href="https://github.com/kudapara/curated-design-tools">Curated Design Tools</a></h3><blockquote>
+<p>很棒的设计工具的精选列表</p>
+</blockquote>
+<h3 id="70-Awesome-CSS-Frameworks"><a href="#70-Awesome-CSS-Frameworks" class="headerlink" title="70. Awesome-CSS-Frameworks"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#70-awesomecssframeworks"></a>70. <a href="https://github.com/troxler/awesome-css-frameworks">Awesome-CSS-Frameworks</a></h3><blockquote>
+<p>开源 CSS 框架列表</p>
+</blockquote>
+<h3 id="71-CSS-Reference"><a href="#71-CSS-Reference" class="headerlink" title="71. CSS Reference"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#71-css-reference"></a>71. <a href="https://cssreference.io/">CSS Reference</a></h3><blockquote>
+<p>CSS 属性的可视化指南 (类似于 <a href="https://htmlreference.io/">htmlreference.io</a>)</p>
+</blockquote>
+<h3 id="72-MDN-CSS-Docs"><a href="#72-MDN-CSS-Docs" class="headerlink" title="72. MDN CSS Docs"></a><a href="https://dev.to/lissy93/super-useful-css-resources-1ba3#72-mdn-css-docs"></a>72. <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference">MDN CSS Docs</a></h3><blockquote>
+<p>所有可用 CSS 属性的优秀文档</p>
+</blockquote>
+<h2 id="🚀-关于我"><a href="#🚀-关于我" class="headerlink" title="🚀 关于我"></a>🚀 关于我</h2><p><a href="https://github.com/songhang666">戳</a><br>👩‍💻 🧠👯‍♀️🤔 💬 📫😄 ⚡️ </p>
+]]></content>
+      <categories>
+        <category>css</category>
+      </categories>
+      <tags>
+        <tag>css</tag>
+      </tags>
+  </entry>
+</search>

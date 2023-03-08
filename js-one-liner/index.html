@@ -1,0 +1,213 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><title>一行可以做的事 | songhang</title><meta name="author"><meta name="copyright"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="Hi! 👋JavaScript 单行简代码使用这些基本的一行代码将您的JavaScript技能提升到一个新的水平，它们还可以节省您的编码时间 1) 查找数组中的最大值：1Math.max(...array) 2) 从数组中删除重复项：1[...new Set(array)] 3）生成一个1到100之间的随机数：1Math.floor(Math.random() * 100) + 1 4) 检查字">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一行可以做的事">
+<meta property="og:url" content="https://songhangio.github.io/js-one-liner/index.html">
+<meta property="og:site_name" content="songhang">
+<meta property="og:description" content="Hi! 👋JavaScript 单行简代码使用这些基本的一行代码将您的JavaScript技能提升到一个新的水平，它们还可以节省您的编码时间 1) 查找数组中的最大值：1Math.max(...array) 2) 从数组中删除重复项：1[...new Set(array)] 3）生成一个1到100之间的随机数：1Math.floor(Math.random() * 100) + 1 4) 检查字">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s3.bmp.ovh/imgs/2023/02/25/c98860614fe06c47.jpg">
+<meta property="article:published_time" content="2023-02-24T05:00:00.000Z">
+<meta property="article:modified_time" content="2023-02-25T08:32:11.622Z">
+<meta property="article:tag" content="javascript">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s3.bmp.ovh/imgs/2023/02/25/c98860614fe06c47.jpg"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://songhangio.github.io/js-one-liner/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//fonts.googleapis.com" crossorigin=""/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/4.0.31/fancybox.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web&amp;display=swap" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdnjs.cloudflare.com/ajax/libs/flickr-justified-gallery/2.1.2/fjGallery.min.js',
+      css: 'https://cdnjs.cloudflare.com/ajax/libs/flickr-justified-gallery/2.1.2/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  }
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '一行可以做的事',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-02-25 03:32:11'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/my.css"><meta name="generator" content="Hexo 6.3.0"></head><body><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avtar1.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://s3.bmp.ovh/imgs/2023/02/25/c98860614fe06c47.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="songhang"><img class="site-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/nav.png"/></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">一行可以做的事</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-02-24T05:00:00.000Z" title="发表于 2023-02-24 00:00:00">2023-02-24</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-02-25T08:32:11.622Z" title="更新于 2023-02-25 03:32:11">2023-02-25</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/javascript/">javascript</a></span></div><div class="meta-secondline"></div></div></div></header><div class="color-card"></div><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Hi-👋"><a href="#Hi-👋" class="headerlink" title="Hi! 👋"></a>Hi! 👋</h1><h1 id="JavaScript-单行简代码"><a href="#JavaScript-单行简代码" class="headerlink" title="JavaScript 单行简代码"></a>JavaScript 单行简代码</h1><p>使用这些基本的一行代码将您的JavaScript技能提升到一个新的水平，它们还可以节省您的编码时间</p>
+<h2 id="1-查找数组中的最大值："><a href="#1-查找数组中的最大值：" class="headerlink" title="1) 查找数组中的最大值："></a>1) 查找数组中的最大值：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Math</span>.<span class="title function_">max</span>(...array)</span><br></pre></td></tr></table></figure>
+<h2 id="2-从数组中删除重复项："><a href="#2-从数组中删除重复项：" class="headerlink" title="2) 从数组中删除重复项："></a>2) 从数组中删除重复项：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[...<span class="keyword">new</span> <span class="title class_">Set</span>(array)]</span><br></pre></td></tr></table></figure>
+<h2 id="3）生成一个1到100之间的随机数："><a href="#3）生成一个1到100之间的随机数：" class="headerlink" title="3）生成一个1到100之间的随机数："></a>3）生成一个1到100之间的随机数：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Math</span>.<span class="title function_">floor</span>(<span class="title class_">Math</span>.<span class="title function_">random</span>() * <span class="number">100</span>) + <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<h2 id="4-检查字符串是否为有效数字："><a href="#4-检查字符串是否为有效数字：" class="headerlink" title="4) 检查字符串是否为有效数字："></a>4) 检查字符串是否为有效数字：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">!<span class="built_in">isNaN</span>(<span class="built_in">parseFloat</span>(string))</span><br></pre></td></tr></table></figure>
+<h2 id="5）获取当前日期和时间："><a href="#5）获取当前日期和时间：" class="headerlink" title="5）获取当前日期和时间："></a>5）获取当前日期和时间：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">toString</span>()</span><br></pre></td></tr></table></figure>
+<h2 id="6-检查变量是否为数组："><a href="#6-检查变量是否为数组：" class="headerlink" title="6) 检查变量是否为数组："></a>6) 检查变量是否为数组：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Array</span>.<span class="title function_">isArray</span>(variable)</span><br></pre></td></tr></table></figure>
+<h2 id="7-检查一个变量是否是一个对象："><a href="#7-检查一个变量是否是一个对象：" class="headerlink" title="7) 检查一个变量是否是一个对象："></a>7) 检查一个变量是否是一个对象：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typeof</span> variable === <span class="string">&quot;object&quot;</span></span><br></pre></td></tr></table></figure>
+<h2 id="8-将数组转换为字符串："><a href="#8-将数组转换为字符串：" class="headerlink" title="8) 将数组转换为字符串："></a>8) 将数组转换为字符串：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">array.<span class="title function_">join</span>(<span class="string">&quot;,&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="9-检查一个变量是否是一个函数："><a href="#9-检查一个变量是否是一个函数：" class="headerlink" title="9) 检查一个变量是否是一个函数："></a>9) 检查一个变量是否是一个函数：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typeof</span> variable === <span class="string">&quot;function&quot;</span></span><br></pre></td></tr></table></figure>
+<h2 id="10-将对象转换为数组："><a href="#10-将对象转换为数组：" class="headerlink" title="10) 将对象转换为数组："></a>10) 将对象转换为数组：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Object</span>.<span class="title function_">values</span>(object)</span><br></pre></td></tr></table></figure>
+<h2 id="11-计算数组中某个元素的出现次数："><a href="#11-计算数组中某个元素的出现次数：" class="headerlink" title="11) 计算数组中某个元素的出现次数："></a>11) 计算数组中某个元素的出现次数：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">array.<span class="title function_">filter</span>(<span class="function"><span class="params">x</span> =&gt;</span> x === element).<span class="property">length</span></span><br></pre></td></tr></table></figure>
+<h2 id="12-使用动态键和值创建一个新对象："><a href="#12-使用动态键和值创建一个新对象：" class="headerlink" title="12) 使用动态键和值创建一个新对象："></a>12) 使用动态键和值创建一个新对象：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123; [key]: value &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="13-检查字符串是否为回文-正反读都一样的字符串-："><a href="#13-检查字符串是否为回文-正反读都一样的字符串-：" class="headerlink" title="13) 检查字符串是否为回文(正反读都一样的字符串)："></a>13) 检查字符串是否为回文(正反读都一样的字符串)：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">string === string.<span class="title function_">split</span>(<span class="string">&quot;&quot;</span>).<span class="title function_">reverse</span>().<span class="title function_">join</span>(<span class="string">&quot;&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="14-获取数组中所有数字的总和"><a href="#14-获取数组中所有数字的总和" class="headerlink" title="14) 获取数组中所有数字的总和"></a>14) 获取数组中所有数字的总和</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">array.<span class="title function_">reduce</span>(<span class="function">(<span class="params">a, b</span>) =&gt;</span> a + b, <span class="number">0</span>));</span><br></pre></td></tr></table></figure>
+<h2 id="15-获取当前时间戳："><a href="#15-获取当前时间戳：" class="headerlink" title="15) 获取当前时间戳："></a>15) 获取当前时间戳：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Date</span>.<span class="title function_">now</span>()</span><br></pre></td></tr></table></figure>
+<h2 id="16-检查变量是否为空："><a href="#16-检查变量是否为空：" class="headerlink" title="16) 检查变量是否为空："></a>16) 检查变量是否为空：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">variable === <span class="literal">null</span></span><br></pre></td></tr></table></figure>
+<h2 id="17-检查变量是否未定义："><a href="#17-检查变量是否未定义：" class="headerlink" title="17) 检查变量是否未定义："></a>17) 检查变量是否未定义：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typeof</span> variable === <span class="string">&quot;undefined&quot;</span></span><br></pre></td></tr></table></figure>
+<h2 id="18-查找数组中的最小值"><a href="#18-查找数组中的最小值" class="headerlink" title="18) 查找数组中的最小值"></a>18) 查找数组中的最小值</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Math</span>.<span class="title function_">min</span>(...array)</span><br></pre></td></tr></table></figure>
+<h2 id="19-检查数组是否为空："><a href="#19-检查数组是否为空：" class="headerlink" title="19) 检查数组是否为空："></a>19) 检查数组是否为空：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">array.<span class="property">length</span> === <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<h2 id="20-创建一个具有指定范围数字的新数组："><a href="#20-创建一个具有指定范围数字的新数组：" class="headerlink" title="20) 创建一个具有指定范围数字的新数组："></a>20) 创建一个具有指定范围数字的新数组：</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Array</span>.<span class="title function_">from</span>(&#123; <span class="attr">length</span>: n &#125;, <span class="function">(<span class="params">_, i</span>) =&gt;</span> i)</span><br></pre></td></tr></table></figure>
+<h2 id="🚀-关于我"><a href="#🚀-关于我" class="headerlink" title="🚀 关于我"></a>🚀 关于我</h2><p><a target="_blank" rel="noopener" href="https://github.com/songhang666">戳</a><br>👩‍💻 🧠👯‍♀️🤔 💬 📫😄 ⚡️ </p>
+<h2 id="鸣谢"><a href="#鸣谢" class="headerlink" title="鸣谢"></a>鸣谢</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://dev.to/rammcodes/20-killer-javascript-one-liners-thatll-save-you-hours-of-coding-o14">Ram Maheshwari </a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/songhang666"></a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://songhangio.github.io/js-one-liner/">https://songhangio.github.io/js-one-liner/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://songhangio.github.io" target="_blank">songhang</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/javascript/">javascript</a></div><div class="post_share"><div class="social-share" data-image="https://s3.bmp.ovh/imgs/2023/02/25/c98860614fe06c47.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/butterfly-extsrc/1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdnjs.cloudflare.com/ajax/libs/butterfly-extsrc/1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/fun-nextjs/" title="next.js 13的服务端组件雏形"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s3.bmp.ovh/imgs/2023/03/02/b0126a6182a7ebed.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">next.js 13的服务端组件雏形</div></div></a></div><div class="next-post pull-right"><a href="/remix-app/" title="初探remix + xata + tailwind"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s3.bmp.ovh/imgs/2023/02/20/d9417e22ddd8804d.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">初探remix + xata + tailwind</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/event-loop/" title="再探Event Loop"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s3.bmp.ovh/imgs/2023/02/19/72a426c673e03dd1.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-02-19</div><div class="title">再探Event Loop</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avtar1.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name"></div><div class="author-info__description">songhang's blog</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/songhang666"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/songhang666" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:songhanghang666@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">songhang's blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Hi-%F0%9F%91%8B"><span class="toc-number">1.</span> <span class="toc-text">Hi! 👋</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#JavaScript-%E5%8D%95%E8%A1%8C%E7%AE%80%E4%BB%A3%E7%A0%81"><span class="toc-number">2.</span> <span class="toc-text">JavaScript 单行简代码</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%9F%A5%E6%89%BE%E6%95%B0%E7%BB%84%E4%B8%AD%E7%9A%84%E6%9C%80%E5%A4%A7%E5%80%BC%EF%BC%9A"><span class="toc-number">2.1.</span> <span class="toc-text">1) 查找数组中的最大值：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BB%8E%E6%95%B0%E7%BB%84%E4%B8%AD%E5%88%A0%E9%99%A4%E9%87%8D%E5%A4%8D%E9%A1%B9%EF%BC%9A"><span class="toc-number">2.2.</span> <span class="toc-text">2) 从数组中删除重复项：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3%EF%BC%89%E7%94%9F%E6%88%90%E4%B8%80%E4%B8%AA1%E5%88%B0100%E4%B9%8B%E9%97%B4%E7%9A%84%E9%9A%8F%E6%9C%BA%E6%95%B0%EF%BC%9A"><span class="toc-number">2.3.</span> <span class="toc-text">3）生成一个1到100之间的随机数：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%A3%80%E6%9F%A5%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%98%AF%E5%90%A6%E4%B8%BA%E6%9C%89%E6%95%88%E6%95%B0%E5%AD%97%EF%BC%9A"><span class="toc-number">2.4.</span> <span class="toc-text">4) 检查字符串是否为有效数字：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5%EF%BC%89%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E6%97%A5%E6%9C%9F%E5%92%8C%E6%97%B6%E9%97%B4%EF%BC%9A"><span class="toc-number">2.5.</span> <span class="toc-text">5）获取当前日期和时间：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%A3%80%E6%9F%A5%E5%8F%98%E9%87%8F%E6%98%AF%E5%90%A6%E4%B8%BA%E6%95%B0%E7%BB%84%EF%BC%9A"><span class="toc-number">2.6.</span> <span class="toc-text">6) 检查变量是否为数组：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E6%A3%80%E6%9F%A5%E4%B8%80%E4%B8%AA%E5%8F%98%E9%87%8F%E6%98%AF%E5%90%A6%E6%98%AF%E4%B8%80%E4%B8%AA%E5%AF%B9%E8%B1%A1%EF%BC%9A"><span class="toc-number">2.7.</span> <span class="toc-text">7) 检查一个变量是否是一个对象：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E5%B0%86%E6%95%B0%E7%BB%84%E8%BD%AC%E6%8D%A2%E4%B8%BA%E5%AD%97%E7%AC%A6%E4%B8%B2%EF%BC%9A"><span class="toc-number">2.8.</span> <span class="toc-text">8) 将数组转换为字符串：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E6%A3%80%E6%9F%A5%E4%B8%80%E4%B8%AA%E5%8F%98%E9%87%8F%E6%98%AF%E5%90%A6%E6%98%AF%E4%B8%80%E4%B8%AA%E5%87%BD%E6%95%B0%EF%BC%9A"><span class="toc-number">2.9.</span> <span class="toc-text">9) 检查一个变量是否是一个函数：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E5%B0%86%E5%AF%B9%E8%B1%A1%E8%BD%AC%E6%8D%A2%E4%B8%BA%E6%95%B0%E7%BB%84%EF%BC%9A"><span class="toc-number">2.10.</span> <span class="toc-text">10) 将对象转换为数组：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-%E8%AE%A1%E7%AE%97%E6%95%B0%E7%BB%84%E4%B8%AD%E6%9F%90%E4%B8%AA%E5%85%83%E7%B4%A0%E7%9A%84%E5%87%BA%E7%8E%B0%E6%AC%A1%E6%95%B0%EF%BC%9A"><span class="toc-number">2.11.</span> <span class="toc-text">11) 计算数组中某个元素的出现次数：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12-%E4%BD%BF%E7%94%A8%E5%8A%A8%E6%80%81%E9%94%AE%E5%92%8C%E5%80%BC%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E6%96%B0%E5%AF%B9%E8%B1%A1%EF%BC%9A"><span class="toc-number">2.12.</span> <span class="toc-text">12) 使用动态键和值创建一个新对象：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-%E6%A3%80%E6%9F%A5%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%98%AF%E5%90%A6%E4%B8%BA%E5%9B%9E%E6%96%87-%E6%AD%A3%E5%8F%8D%E8%AF%BB%E9%83%BD%E4%B8%80%E6%A0%B7%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2-%EF%BC%9A"><span class="toc-number">2.13.</span> <span class="toc-text">13) 检查字符串是否为回文(正反读都一样的字符串)：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#14-%E8%8E%B7%E5%8F%96%E6%95%B0%E7%BB%84%E4%B8%AD%E6%89%80%E6%9C%89%E6%95%B0%E5%AD%97%E7%9A%84%E6%80%BB%E5%92%8C"><span class="toc-number">2.14.</span> <span class="toc-text">14) 获取数组中所有数字的总和</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#15-%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E6%97%B6%E9%97%B4%E6%88%B3%EF%BC%9A"><span class="toc-number">2.15.</span> <span class="toc-text">15) 获取当前时间戳：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#16-%E6%A3%80%E6%9F%A5%E5%8F%98%E9%87%8F%E6%98%AF%E5%90%A6%E4%B8%BA%E7%A9%BA%EF%BC%9A"><span class="toc-number">2.16.</span> <span class="toc-text">16) 检查变量是否为空：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#17-%E6%A3%80%E6%9F%A5%E5%8F%98%E9%87%8F%E6%98%AF%E5%90%A6%E6%9C%AA%E5%AE%9A%E4%B9%89%EF%BC%9A"><span class="toc-number">2.17.</span> <span class="toc-text">17) 检查变量是否未定义：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#18-%E6%9F%A5%E6%89%BE%E6%95%B0%E7%BB%84%E4%B8%AD%E7%9A%84%E6%9C%80%E5%B0%8F%E5%80%BC"><span class="toc-number">2.18.</span> <span class="toc-text">18) 查找数组中的最小值</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#19-%E6%A3%80%E6%9F%A5%E6%95%B0%E7%BB%84%E6%98%AF%E5%90%A6%E4%B8%BA%E7%A9%BA%EF%BC%9A"><span class="toc-number">2.19.</span> <span class="toc-text">19) 检查数组是否为空：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#20-%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E5%85%B7%E6%9C%89%E6%8C%87%E5%AE%9A%E8%8C%83%E5%9B%B4%E6%95%B0%E5%AD%97%E7%9A%84%E6%96%B0%E6%95%B0%E7%BB%84%EF%BC%9A"><span class="toc-number">2.20.</span> <span class="toc-text">20) 创建一个具有指定范围数字的新数组：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%9A%80-%E5%85%B3%E4%BA%8E%E6%88%91"><span class="toc-number">2.21.</span> <span class="toc-text">🚀 关于我</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%B8%A3%E8%B0%A2"><span class="toc-number">2.22.</span> <span class="toc-text">鸣谢</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/vite-react/" title="Vite+Tailwind CSS创建一个react应用"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s3.bmp.ovh/imgs/2023/03/08/db72fbe437c62ff4.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Vite+Tailwind CSS创建一个react应用"/></a><div class="content"><a class="title" href="/vite-react/" title="Vite+Tailwind CSS创建一个react应用">Vite+Tailwind CSS创建一个react应用</a><time datetime="2023-03-08T05:00:00.000Z" title="发表于 2023-03-08 00:00:00">2023-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/super-css/" title="收藏css工具类"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s3.bmp.ovh/imgs/2023/03/08/249c2bee7dd0e660.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="收藏css工具类"/></a><div class="content"><a class="title" href="/super-css/" title="收藏css工具类">收藏css工具类</a><time datetime="2023-03-08T05:00:00.000Z" title="发表于 2023-03-08 00:00:00">2023-03-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/fun-nextjs/" title="next.js 13的服务端组件雏形"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s3.bmp.ovh/imgs/2023/03/02/b0126a6182a7ebed.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="next.js 13的服务端组件雏形"/></a><div class="content"><a class="title" href="/fun-nextjs/" title="next.js 13的服务端组件雏形">next.js 13的服务端组件雏形</a><time datetime="2023-03-01T05:00:00.000Z" title="发表于 2023-03-01 00:00:00">2023-03-01</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/js-one-liner/" title="一行可以做的事"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s3.bmp.ovh/imgs/2023/02/25/c98860614fe06c47.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="一行可以做的事"/></a><div class="content"><a class="title" href="/js-one-liner/" title="一行可以做的事">一行可以做的事</a><time datetime="2023-02-24T05:00:00.000Z" title="发表于 2023-02-24 00:00:00">2023-02-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/remix-app/" title="初探remix + xata + tailwind"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s3.bmp.ovh/imgs/2023/02/20/d9417e22ddd8804d.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="初探remix + xata + tailwind"/></a><div class="content"><a class="title" href="/remix-app/" title="初探remix + xata + tailwind">初探remix + xata + tailwind</a><time datetime="2023-02-20T05:00:00.000Z" title="发表于 2023-02-20 00:00:00">2023-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2023 By null</div><div class="footer_custom_text">Hi, welcome to my <a href="https://songhangio.github.io/">blog</a>!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/4.0.31/fancybox.umd.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-lazyload/17.8.3/lazyload.iife.min.js"></script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const valine = new Valine(Object.assign({
+      el: '#vcomment',
+      appId: 'asrzLkrgaAOiQ72B3eIfPWNO-MdYXbMMI',
+      appKey: 'Qa9M4eTj9XpiledpIM7m7QRD',
+      avatar: 'monsterid',
+      serverURLs: 'https://asrzlkrg.api.lncldglobal.com',
+      emojiMaps: "",
+      path: window.location.pathname,
+      visitor: false
+    }, null))
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else getScript('https://cdnjs.cloudflare.com/ajax/libs/valine/1.5.1/Valine.min.js').then(initValine)
+}
+
+if ('Valine' === 'Valine' || !false) {
+  if (false) btf.loadComment(document.getElementById('vcomment'),loadValine)
+  else setTimeout(loadValine, 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script></div><script data-pjax defer src="/js/my.js"></script><script defer="defer" id="ribbon" src="https://cdnjs.cloudflare.com/ajax/libs/butterfly-extsrc/1.1.3/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="true"></script></div><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></body></html>
