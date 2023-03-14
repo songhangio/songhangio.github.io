@@ -138,53 +138,6 @@
       </tags>
   </entry>
   <entry>
-    <title>next.js 13的服务端组件雏形</title>
-    <url>/fun-nextjs/</url>
-    <content><![CDATA[<h1 id="Hi-👋"><a href="#Hi-👋" class="headerlink" title="Hi! 👋"></a>Hi! 👋</h1><h1 id="有趣的next-js服务端组件"><a href="#有趣的next-js服务端组件" class="headerlink" title="有趣的next.js服务端组件"></a>有趣的next.js服务端组件</h1><p>Next.js 13 添加了许多值得注意且颠覆性的东西；但是，很大一部分仍然是 Beta阶段。尽管如此，Beta 功能为我们提供了关于 Next.js 未来将会被如何塑造的重要信号，即使你现在并不打算在你的项目里使用它。</p>
-<h2 id="默认创建服务端组件，如需更改客户端组件需要显式声明："><a href="#默认创建服务端组件，如需更改客户端组件需要显式声明：" class="headerlink" title="默认创建服务端组件，如需更改客户端组件需要显式声明："></a>默认创建服务端组件，如需更改客户端组件需要显式声明：</h2><p><code>Next.js 13</code> 引入了app文件目录，这是一种在考虑 <code>React Server Components</code>的情况下构建 Next.js 应用程序的全新方式。<code>app</code>目录下构建的组件默认是<code>React Server Components</code>，如果要构建客户端组件必须显式添加 <code>&#39;use client&#39;</code></p>
-<h2 id="什么是-React-服务器组件？"><a href="#什么是-React-服务器组件？" class="headerlink" title="什么是 React 服务器组件？"></a>什么是 React 服务器组件？</h2><p><code>React Server Components</code>是在服务器上呈现的组件。<code>React Server Components</code>利用服务器的优势功能给客户端提供更优质的体验。</p>
-<p>服务器组件最常见的用例是获取数据并根据服务器上的数据呈现在你的组件内。</p>
-<h3 id="你要考虑放入服务器组件的内容是："><a href="#你要考虑放入服务器组件的内容是：" class="headerlink" title="你要考虑放入服务器组件的内容是："></a>你要考虑放入服务器组件的内容是：</h3><p>获取数据（利用服务器的超高速连接）<br>访问后端资源或文件系统<br>不需要客户端交互的具有大量依赖项的组件</p>
-<p>💡<code>注意</code> <code>React Server Components</code>不能包含任何客户端交互，，因为您需要提前考虑如何最好地分发组件，但目标是将尽可能多的组件移至可预测且性能更高的服务器。<br>仅客户端调用的常见示例：<code>useState,useEffect,onClick</code></p>
-<h2 id="为什么需要-React-服务器组件？"><a href="#为什么需要-React-服务器组件？" class="headerlink" title="为什么需要 React 服务器组件？"></a>为什么需要 React 服务器组件？</h2><p>第一个原因是服务器组件对应用程序的整体包大小贡献为零。这意味着客户端的下载文件大小更小，从而使您的页面更快。</p>
-<p>如果您有需要使用但客户端不需要的包，这个好处会非常有用。将这些依赖项完全保留在服务器端意味着减少客户端的下载。首屏加载体验会更佳</p>
-<p>如上所述，另一个很大的好处是您的代码在功能强大的服务器上运行，希望也更接近数据。将计算推送到服务器可以为移动设备上的访问者带来很大的不同。</p>
-<h2 id="一个示例"><a href="#一个示例" class="headerlink" title="一个示例"></a>一个示例</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="attr">C</span>:.</span><br><span class="line">│  .<span class="property">env</span></span><br><span class="line">│  .<span class="property">eslintrc</span>.<span class="property">json</span></span><br><span class="line">│  .<span class="property">gitignore</span></span><br><span class="line">│  next-env.<span class="property">d</span>.<span class="property">ts</span></span><br><span class="line">│  next.<span class="property">config</span>.<span class="property">js</span></span><br><span class="line">│  package-lock.<span class="property">json</span></span><br><span class="line">│  package.<span class="property">json</span></span><br><span class="line">│  <span class="variable constant_">README</span>.<span class="property">md</span></span><br><span class="line">│  tsconfig.<span class="property">json</span></span><br><span class="line">│</span><br><span class="line">├─.<span class="property">vscode</span></span><br><span class="line">│      settings.<span class="property">json</span></span><br><span class="line">│</span><br><span class="line">├─app</span><br><span class="line">│  │  globals.<span class="property">css</span></span><br><span class="line">│  │  head.<span class="property">tsx</span></span><br><span class="line">│  │  layout.<span class="property">tsx</span></span><br><span class="line">│  │  page.<span class="property">tsx</span></span><br><span class="line">│  │</span><br><span class="line">│  ├─client</span><br><span class="line">│  │      page.<span class="property">tsx</span></span><br><span class="line">│  │</span><br><span class="line">│  ├─degenerate</span><br><span class="line">│  │      client.<span class="property">tsx</span></span><br><span class="line">│  │      nested-server.<span class="property">tsx</span></span><br><span class="line">│  │      page.<span class="property">tsx</span></span><br><span class="line">│  │</span><br><span class="line">│  ├─mixmatch</span><br><span class="line">│  │      client.<span class="property">tsx</span></span><br><span class="line">│  │      nested-server.<span class="property">tsx</span></span><br><span class="line">│  │      page.<span class="property">tsx</span></span><br><span class="line">│  │</span><br><span class="line">│  └─server</span><br><span class="line">│          page.<span class="property">tsx</span></span><br><span class="line">│</span><br><span class="line">└─public</span><br><span class="line">        favicon.<span class="property">ico</span></span><br><span class="line">        vercel.<span class="property">svg</span></span><br></pre></td></tr></table></figure>
-
-<p><code>创建我们的第一个服务器组件：</code></p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/server/page.tsx</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">Server</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;服务器页面已渲染:这应该只打印在服务器上&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">h1</span>&gt;</span>Server Page<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">p</span>&gt;</span>My secret key: &#123;process.env.MY_SECRET_ENV&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>如果您访问&#x2F;server路由，无论是通过浏览器加载还是客户端路由，都只会在服务器控制台中看到日志行，而不会在浏览器控制台中看到。环境变量值也是从服务器端获取的。</p>
-<p>查看浏览器中的网络流量，会看到服务器组件的内容是通过远程调用加载的，该调用返回渲染结果的 JSON 数据的八位字节流：<br><img src="https://s3.bmp.ovh/imgs/2023/03/02/230d7c485b9c1860.png"></p>
-<p>渲染服务器组件实际上是一个 API 调用，以获取序列化的虚拟 DOM，然后在浏览器中实现它。</p>
-<p>最重要的是，服务器组件用于呈现非交互式内容，因此没有事件处理程序、没有 React hooks，也没有仅限浏览器的API。</p>
-<p>最显着的好处是可以自由访问服务器组件中的任何后端资源和机密。它更安全（数据不会泄漏）和更快（代码不会泄漏）。</p>
-<h2 id="客户端组件"><a href="#客户端组件" class="headerlink" title="客户端组件"></a>客户端组件</h2><p>要做一个客户端组件，需要显式声明<code>use client</code></p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/server/page.tsx</span></span><br><span class="line"><span class="string">&#x27;use client&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> &#123; useEffect &#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">Client</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(</span><br><span class="line">        <span class="string">&#x27;客户端页面渲染:这应该只在ssr期间打印在服务器上，在路由时打印在客户端上&#x27;</span></span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;客户端组件渲染&#x27;</span>);</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">h1</span>&gt;</span>Client Page<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这提供了与以前的 Next.js 版本类似的行为。当页面首次加载时，它是由 SSR 渲染的，因此在服务器控制台中看到第一个日志；在客户端路由期间，两条日志消息都将出现在浏览器控制台中。</p>
-<h2 id="到底有什么区别"><a href="#到底有什么区别" class="headerlink" title="到底有什么区别"></a>到底有什么区别</h2><p>Server Component 和 SSR 最大的区别之一是 SSR 是页面级别的，而 Server Component 顾名思义是组件级别的。这意味着您可以根据需要在渲染树中混合和匹配服务器和客户端组件。</p>
-<h2 id="服务器组件可能会降级退化"><a href="#服务器组件可能会降级退化" class="headerlink" title="服务器组件可能会降级退化"></a>服务器组件可能会降级退化</h2><p>如果将服务器组件直接引入到客户端组件中，它会默认降级退化为客户端组件。</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/degenerate/page.tsx</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Client</span> <span class="keyword">from</span> <span class="string">&#x27;./client&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">DegeneratePage</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;降级页面渲染&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">h1</span>&gt;</span>Degenerated Page<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;box-blue&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">                <span class="tag">&lt;<span class="name">Client</span> <span class="attr">message</span>=<span class="string">&quot;A message from server&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/degenerate/client.tsx</span></span><br><span class="line"></span><br><span class="line"><span class="string">&#x27;use client&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">NestedServer</span> <span class="keyword">from</span> <span class="string">&#x27;./nested-server&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">Client</span>(<span class="params">&#123; message &#125;: &#123; message: string &#125;</span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;客户端组件渲染&#x27;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">h2</span>&gt;</span>Client Child<span class="tag">&lt;/<span class="name">h2</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">p</span>&gt;</span>Message from parent: &#123;message&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;box-blue&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">                <span class="tag">&lt;<span class="name">NestedServer</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/degenerated/nested-server.tsx</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">NestedServer</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;嵌套服务端组件渲染&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">h3</span>&gt;</span>降级服务端组件<span class="tag">&lt;/<span class="name">h3</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">p</span>&gt;</span>内容<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>如果您查看日志，会看到<code>NestedServer</code>已经“降级退化”并且由浏览器呈现。</p>
-<h2 id="这是一个未来的趋势么？"><a href="#这是一个未来的趋势么？" class="headerlink" title="这是一个未来的趋势么？"></a>这是一个未来的趋势么？</h2><p>Next.js 正在尽其所能将事情转移到服务器端，这正是人们在 2010 年前进行 Web 开发的方式😅。所以现在我们完成了一个完整的循环，但大大改善了开发体验和最终用户体验。</p>
-<p>对于终端用户来说，这是一个明显的胜利，因为服务器端的计算速度更快、更可靠。结果将是更快的第一个内容渲染</p>
-<p>对于开发人员而言，模式转变将在精神上带来挑战，并伴随着混乱、错误和反模式。这将是一段地狱般的旅程。</p>
-<h2 id="🚀-关于我"><a href="#🚀-关于我" class="headerlink" title="🚀 关于我"></a>🚀 关于我</h2><p><a href="https://github.com/songhang666">戳</a><br>👩‍💻 🧠👯‍♀️🤔 💬 📫😄 ⚡️ </p>
-]]></content>
-      <categories>
-        <category>next</category>
-      </categories>
-      <tags>
-        <tag>next</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Vless for Glitch搭建和部署</title>
     <url>/glitch-deploy/</url>
     <content><![CDATA[<h1 id="Vless-for-Glitch"><a href="#Vless-for-Glitch" class="headerlink" title="Vless for Glitch"></a>Vless for Glitch</h1><hr>
@@ -307,6 +260,53 @@
       </tags>
   </entry>
   <entry>
+    <title>next.js 13的服务端组件雏形</title>
+    <url>/fun-nextjs/</url>
+    <content><![CDATA[<h1 id="Hi-👋"><a href="#Hi-👋" class="headerlink" title="Hi! 👋"></a>Hi! 👋</h1><h1 id="有趣的next-js服务端组件"><a href="#有趣的next-js服务端组件" class="headerlink" title="有趣的next.js服务端组件"></a>有趣的next.js服务端组件</h1><p>Next.js 13 添加了许多值得注意且颠覆性的东西；但是，很大一部分仍然是 Beta阶段。尽管如此，Beta 功能为我们提供了关于 Next.js 未来将会被如何塑造的重要信号，即使你现在并不打算在你的项目里使用它。</p>
+<h2 id="默认创建服务端组件，如需更改客户端组件需要显式声明："><a href="#默认创建服务端组件，如需更改客户端组件需要显式声明：" class="headerlink" title="默认创建服务端组件，如需更改客户端组件需要显式声明："></a>默认创建服务端组件，如需更改客户端组件需要显式声明：</h2><p><code>Next.js 13</code> 引入了app文件目录，这是一种在考虑 <code>React Server Components</code>的情况下构建 Next.js 应用程序的全新方式。<code>app</code>目录下构建的组件默认是<code>React Server Components</code>，如果要构建客户端组件必须显式添加 <code>&#39;use client&#39;</code></p>
+<h2 id="什么是-React-服务器组件？"><a href="#什么是-React-服务器组件？" class="headerlink" title="什么是 React 服务器组件？"></a>什么是 React 服务器组件？</h2><p><code>React Server Components</code>是在服务器上呈现的组件。<code>React Server Components</code>利用服务器的优势功能给客户端提供更优质的体验。</p>
+<p>服务器组件最常见的用例是获取数据并根据服务器上的数据呈现在你的组件内。</p>
+<h3 id="你要考虑放入服务器组件的内容是："><a href="#你要考虑放入服务器组件的内容是：" class="headerlink" title="你要考虑放入服务器组件的内容是："></a>你要考虑放入服务器组件的内容是：</h3><p>获取数据（利用服务器的超高速连接）<br>访问后端资源或文件系统<br>不需要客户端交互的具有大量依赖项的组件</p>
+<p>💡<code>注意</code> <code>React Server Components</code>不能包含任何客户端交互，，因为您需要提前考虑如何最好地分发组件，但目标是将尽可能多的组件移至可预测且性能更高的服务器。<br>仅客户端调用的常见示例：<code>useState,useEffect,onClick</code></p>
+<h2 id="为什么需要-React-服务器组件？"><a href="#为什么需要-React-服务器组件？" class="headerlink" title="为什么需要 React 服务器组件？"></a>为什么需要 React 服务器组件？</h2><p>第一个原因是服务器组件对应用程序的整体包大小贡献为零。这意味着客户端的下载文件大小更小，从而使您的页面更快。</p>
+<p>如果您有需要使用但客户端不需要的包，这个好处会非常有用。将这些依赖项完全保留在服务器端意味着减少客户端的下载。首屏加载体验会更佳</p>
+<p>如上所述，另一个很大的好处是您的代码在功能强大的服务器上运行，希望也更接近数据。将计算推送到服务器可以为移动设备上的访问者带来很大的不同。</p>
+<h2 id="一个示例"><a href="#一个示例" class="headerlink" title="一个示例"></a>一个示例</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="attr">C</span>:.</span><br><span class="line">│  .<span class="property">env</span></span><br><span class="line">│  .<span class="property">eslintrc</span>.<span class="property">json</span></span><br><span class="line">│  .<span class="property">gitignore</span></span><br><span class="line">│  next-env.<span class="property">d</span>.<span class="property">ts</span></span><br><span class="line">│  next.<span class="property">config</span>.<span class="property">js</span></span><br><span class="line">│  package-lock.<span class="property">json</span></span><br><span class="line">│  package.<span class="property">json</span></span><br><span class="line">│  <span class="variable constant_">README</span>.<span class="property">md</span></span><br><span class="line">│  tsconfig.<span class="property">json</span></span><br><span class="line">│</span><br><span class="line">├─.<span class="property">vscode</span></span><br><span class="line">│      settings.<span class="property">json</span></span><br><span class="line">│</span><br><span class="line">├─app</span><br><span class="line">│  │  globals.<span class="property">css</span></span><br><span class="line">│  │  head.<span class="property">tsx</span></span><br><span class="line">│  │  layout.<span class="property">tsx</span></span><br><span class="line">│  │  page.<span class="property">tsx</span></span><br><span class="line">│  │</span><br><span class="line">│  ├─client</span><br><span class="line">│  │      page.<span class="property">tsx</span></span><br><span class="line">│  │</span><br><span class="line">│  ├─degenerate</span><br><span class="line">│  │      client.<span class="property">tsx</span></span><br><span class="line">│  │      nested-server.<span class="property">tsx</span></span><br><span class="line">│  │      page.<span class="property">tsx</span></span><br><span class="line">│  │</span><br><span class="line">│  ├─mixmatch</span><br><span class="line">│  │      client.<span class="property">tsx</span></span><br><span class="line">│  │      nested-server.<span class="property">tsx</span></span><br><span class="line">│  │      page.<span class="property">tsx</span></span><br><span class="line">│  │</span><br><span class="line">│  └─server</span><br><span class="line">│          page.<span class="property">tsx</span></span><br><span class="line">│</span><br><span class="line">└─public</span><br><span class="line">        favicon.<span class="property">ico</span></span><br><span class="line">        vercel.<span class="property">svg</span></span><br></pre></td></tr></table></figure>
+
+<p><code>创建我们的第一个服务器组件：</code></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/server/page.tsx</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">Server</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;服务器页面已渲染:这应该只打印在服务器上&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">h1</span>&gt;</span>Server Page<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">p</span>&gt;</span>My secret key: &#123;process.env.MY_SECRET_ENV&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果您访问&#x2F;server路由，无论是通过浏览器加载还是客户端路由，都只会在服务器控制台中看到日志行，而不会在浏览器控制台中看到。环境变量值也是从服务器端获取的。</p>
+<p>查看浏览器中的网络流量，会看到服务器组件的内容是通过远程调用加载的，该调用返回渲染结果的 JSON 数据的八位字节流：<br><img src="https://s3.bmp.ovh/imgs/2023/03/02/230d7c485b9c1860.png"></p>
+<p>渲染服务器组件实际上是一个 API 调用，以获取序列化的虚拟 DOM，然后在浏览器中实现它。</p>
+<p>最重要的是，服务器组件用于呈现非交互式内容，因此没有事件处理程序、没有 React hooks，也没有仅限浏览器的API。</p>
+<p>最显着的好处是可以自由访问服务器组件中的任何后端资源和机密。它更安全（数据不会泄漏）和更快（代码不会泄漏）。</p>
+<h2 id="客户端组件"><a href="#客户端组件" class="headerlink" title="客户端组件"></a>客户端组件</h2><p>要做一个客户端组件，需要显式声明<code>use client</code></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/server/page.tsx</span></span><br><span class="line"><span class="string">&#x27;use client&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> &#123; useEffect &#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">Client</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(</span><br><span class="line">        <span class="string">&#x27;客户端页面渲染:这应该只在ssr期间打印在服务器上，在路由时打印在客户端上&#x27;</span></span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;客户端组件渲染&#x27;</span>);</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">h1</span>&gt;</span>Client Page<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这提供了与以前的 Next.js 版本类似的行为。当页面首次加载时，它是由 SSR 渲染的，因此在服务器控制台中看到第一个日志；在客户端路由期间，两条日志消息都将出现在浏览器控制台中。</p>
+<h2 id="到底有什么区别"><a href="#到底有什么区别" class="headerlink" title="到底有什么区别"></a>到底有什么区别</h2><p>Server Component 和 SSR 最大的区别之一是 SSR 是页面级别的，而 Server Component 顾名思义是组件级别的。这意味着您可以根据需要在渲染树中混合和匹配服务器和客户端组件。</p>
+<h2 id="服务器组件可能会降级退化"><a href="#服务器组件可能会降级退化" class="headerlink" title="服务器组件可能会降级退化"></a>服务器组件可能会降级退化</h2><p>如果将服务器组件直接引入到客户端组件中，它会默认降级退化为客户端组件。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/degenerate/page.tsx</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Client</span> <span class="keyword">from</span> <span class="string">&#x27;./client&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">DegeneratePage</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;降级页面渲染&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">h1</span>&gt;</span>Degenerated Page<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;box-blue&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">                <span class="tag">&lt;<span class="name">Client</span> <span class="attr">message</span>=<span class="string">&quot;A message from server&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/degenerate/client.tsx</span></span><br><span class="line"></span><br><span class="line"><span class="string">&#x27;use client&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">NestedServer</span> <span class="keyword">from</span> <span class="string">&#x27;./nested-server&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">Client</span>(<span class="params">&#123; message &#125;: &#123; message: string &#125;</span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;客户端组件渲染&#x27;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">h2</span>&gt;</span>Client Child<span class="tag">&lt;/<span class="name">h2</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">p</span>&gt;</span>Message from parent: &#123;message&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;box-blue&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">                <span class="tag">&lt;<span class="name">NestedServer</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/degenerated/nested-server.tsx</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">NestedServer</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;嵌套服务端组件渲染&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">h3</span>&gt;</span>降级服务端组件<span class="tag">&lt;/<span class="name">h3</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">p</span>&gt;</span>内容<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果您查看日志，会看到<code>NestedServer</code>已经“降级退化”并且由浏览器呈现。</p>
+<h2 id="这是一个未来的趋势么？"><a href="#这是一个未来的趋势么？" class="headerlink" title="这是一个未来的趋势么？"></a>这是一个未来的趋势么？</h2><p>Next.js 正在尽其所能将事情转移到服务器端，这正是人们在 2010 年前进行 Web 开发的方式😅。所以现在我们完成了一个完整的循环，但大大改善了开发体验和最终用户体验。</p>
+<p>对于终端用户来说，这是一个明显的胜利，因为服务器端的计算速度更快、更可靠。结果将是更快的第一个内容渲染</p>
+<p>对于开发人员而言，模式转变将在精神上带来挑战，并伴随着混乱、错误和反模式。这将是一段地狱般的旅程。</p>
+<h2 id="🚀-关于我"><a href="#🚀-关于我" class="headerlink" title="🚀 关于我"></a>🚀 关于我</h2><p><a href="https://github.com/songhang666">戳</a><br>👩‍💻 🧠👯‍♀️🤔 💬 📫😄 ⚡️ </p>
+]]></content>
+      <categories>
+        <category>next</category>
+      </categories>
+      <tags>
+        <tag>next</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>初探remix + xata + tailwind</title>
     <url>/remix-app/</url>
     <content><![CDATA[<h1 id="本项目是基于remix构建前端页面-xata作为后端接口以及数据库支持的待办事项小应用demo-支持CRUD以及Authentication登录登出"><a href="#本项目是基于remix构建前端页面-xata作为后端接口以及数据库支持的待办事项小应用demo-支持CRUD以及Authentication登录登出" class="headerlink" title="本项目是基于remix构建前端页面 + xata作为后端接口以及数据库支持的待办事项小应用demo(支持CRUD以及Authentication登录登出)"></a>本项目是基于remix构建前端页面 + xata作为后端接口以及数据库支持的待办事项小应用demo(支持CRUD以及Authentication登录登出)</h1><ul>
@@ -375,92 +375,20 @@
       </tags>
   </entry>
   <entry>
-    <title>Vite+Tailwind CSS创建一个react应用</title>
-    <url>/vite-react/</url>
-    <content><![CDATA[<h2 id="为什么使用Vite"><a href="#为什么使用Vite" class="headerlink" title="为什么使用Vite"></a>为什么使用<code>Vite</code></h2><p>大多数开发人员默认将Create React App (CRA)作为构建工具，用于在 React 中创建新项目并设置开发服务器。它提供了无需任何配置的构建设置。</p>
-<p><code>Create React App</code> 在运行在 <code>webpack</code> 上，它在提供服务之前捆绑了整个应用程序。因此，在大型代码库中，应用程序运行需要更多时间，并且文件更改反映在<code>热更新HMR</code>上需要很长时间。</p>
-<p>不同与 <code>CRA</code> ,<code>Vite</code> 不会在提供服务之前构建整个应用程序。它将应用程序模块分为两部分：依赖项和源代码。</p>
-<p>依赖项使用<code>esbuild</code> （用 <code>Go</code> 语言编写）预先捆绑，比基于 JavaScript 的捆绑器快 <code>10 到 100 倍</code>；由于依赖关系不会改变，它们也可以被缓存，这样就可以完全跳过预捆绑。</p>
-<p>源代码通过原生 ESM提供：源代码通常包含需要转换的非纯 JavaScript（例如 JSX、CSS），但并非所有都需要同时加载。所需的代码根据浏览器路由（基于路由的代码拆分）得到服务。</p>
-<p>这些差异导致使用 Vite 初始化、更新和构建 React 应用程序时体验更快。</p>
-<h2 id="第-1-步-–-创建您的项目文件夹"><a href="#第-1-步-–-创建您的项目文件夹" class="headerlink" title="第 1 步 – 创建您的项目文件夹"></a>第 1 步 – 创建您的项目文件夹</h2><p>打开您的终端，然后导航到您要构建项目的文件夹——例如 Desktop。在终端中输入以下命令，然后<code>enter</code>：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm create vite@latest your-project-name -- --template react</span><br></pre></td></tr></table></figure>
-
-<p>上面的命令将创建您的项目文件夹。 ‌</p>
-<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/40581923c83d6942.png"></p>
-<p><code>your-project-name</code>应该替换为您的项目名称。我的项目名称是<code>food-app</code></p>
-<p>‌请注意，我们曾经<code>-- --template react</code>指定我们正在使用 Vite 构建 React 应用程序。</p>
-<h2 id="第-2-步-–-进入到项目文件夹"><a href="#第-2-步-–-进入到项目文件夹" class="headerlink" title="第 2 步 – 进入到项目文件夹"></a>第 2 步 – 进入到项目文件夹</h2><p>在您的终端中输入以下命令，然后<code>enter</code>：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> food-app</span><br></pre></td></tr></table></figure>
-
-<p>‌此命令将导航到您的项目文件夹。你应该有这个：</p>
-<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/7c6440ab6eafa145.png"></p>
-<p>在终端中输入“cd food-app”以导航到“food-app”文件夹</p>
-<h2 id="第-3-步-–-安装-Tailwind-CSS-和其他依赖项"><a href="#第-3-步-–-安装-Tailwind-CSS-和其他依赖项" class="headerlink" title="第 3 步 – 安装 Tailwind CSS 和其他依赖项"></a><strong>第 3 步 – 安装 Tailwind CSS 和其他依赖项</strong></h2><p>在您的终端中输入以下命令，然后<code>enter</code>：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install -D tailwindcss postcss autoprefixer</span><br></pre></td></tr></table></figure>
-
-<p>输入此命令以安装 tailwindcss、postcss 和 autoprefixer 依赖项</p>
-<p>此命令将安装以下内容：</p>
-<ul>
-<li>Tailwind CSS 框架</li>
-<li>Post CSS，它提供插件来执行不同的功能，例如 Vanilla CSS 中的前缀</li>
-<li>Autoprefixer，这是一个 PostCSS 插件，用于解析 CSS 并将前缀添加到 CSS 规则。</li>
-</ul>
-<p>您的文件夹在 VSCode 中应该如下所示：‌</p>
-<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/98a0e9c231c2a6e5.png"></p>
-<p>确认您的 ‌ 中有以下<code>package.json</code>：</p>
-<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/ae80c713114cd58f.png"></p>
-<p>请注意第 19 - 21 行的 autoprefixer、postcss 和 tailwindcss 依赖项。当您阅读本文时，版本号可能已更改。</p>
-<h2 id="第-4-步-–-生成配置文件"><a href="#第-4-步-–-生成配置文件" class="headerlink" title="第 4 步 – 生成配置文件"></a>第 4 步 – 生成配置文件</h2><p>在您的终端中输入以下命令，然后<code>enter</code>：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npx tailwindcss init -p</span><br></pre></td></tr></table></figure>
-
-<p>此命令将生成 tailwindcss 配置文件</p>
-<p>此命令生成<code>tailwind.config.cjs</code>配置<code>postcss.config.cjs</code>文件，也称为配置文件。它们帮助您与项目互动并自定义所有内容。</p>
-<h2 id="第-5-步-–-配置-源路径"><a href="#第-5-步-–-配置-源路径" class="headerlink" title="第 5 步 – 配置 源路径"></a>第 5 步 – 配置 源路径</h2><p>将路径添加到文件中的所有模板文件<code>tailwind.config.cjs</code>。模板文件包括 HTML 模板、JavaScript 组件和其他包含 Tailwind 类名称的源文件。这是为了确保为相应的元素生成 vanilla CSS。</p>
-<p>你<code>tailwind.config.cjs</code>现在看起来像这样：</p>
-<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/bdf9d32420e3b4f1.png"></p>
-<p>当前名为 tailwind.config.cjs 的配置文件，它包含 module.export 对象以使用内容、主题和插件等属性自定义 tailwind</p>
-<p>将其添加到您的内容部分。</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="string">&quot;./index.html&quot;</span>,</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="string">&quot;./src/**/*.&#123;js,ts,jsx,tsx&#125;&quot;</span>,</span><br></pre></td></tr></table></figure>
-
-<p>添加到 content 属性的字符串以逗号分隔</p>
-<p>所以你的文件现在应该是这样的：</p>
-<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/ba5a24028a16d315.png"><br>更新内容属性后的配置文件</p>
-<h2 id="第-6-步-–-将-Tailwind-指令添加到您的-CSS"><a href="#第-6-步-–-将-Tailwind-指令添加到您的-CSS" class="headerlink" title="第 6 步 – 将 Tailwind 指令添加到您的 CSS"></a><strong>第 6 步 – 将 Tailwind 指令添加到您的 CSS</strong></h2><p>Tailwind 指令是自定义的特定于 Tailwind 的语句，用于指示 CSS 如何运行。您需要为 Tailwind 的三个层添加指令。</p>
-<p><code>@tailwind base</code>注入Tailwind的基础样式和插件注册的基础样式，<code>@tailwind components</code>注入Tailwind的组件类和插件注册的组件类，同时<code>@tailwind utilities</code>注入Tailwind的实用类和插件注册的实用类。</p>
-<p>将以下语句添加到您的<code>./src/index.css</code>文件中：</p>
-<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="keyword">@tailwind</span> base;</span><br><span class="line"><span class="keyword">@tailwind</span> components;</span><br><span class="line"><span class="keyword">@tailwind</span> utilities;</span><br></pre></td></tr></table></figure>
-
-<p>添加到 index.css 文件的三个指令 - @tailwind base、@tailwind components 和 @tailwind utilities</p>
-<p>您的<code>index.css</code>文件包含一些默认样式。您可以清除所有内容并粘贴上面的三行指令。</p>
-<h2 id="第-7-步-–-启动您的-Vite-服务器"><a href="#第-7-步-–-启动您的-Vite-服务器" class="headerlink" title="第 7 步 – 启动您的 Vite 服务器"></a>第 7 步 – 启动您的 Vite 服务器</h2><p><code>npm run dev</code>使用终端中的命令运行构建过程。您应该在终端中收到以下消息：</p>
-<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/89fa9667e140b0c2.png"></p>
-<p>运行提供本地主机链接、网络和帮助的 Vite 服务器后收到的消息。</p>
-<p>按住<code>ctrl</code>键并单击本地的链接 – 这里是 <a href="http://127.0.0.1:5174。如果您这样做，它将在您的浏览器中打开一个新选项卡。">http://127.0.0.1:5174。如果您这样做，它将在您的浏览器中打开一个新选项卡。</a></p>
-<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/b55a2168310cc4a0.png"></p>
-<p>首次运行时的网页截图</p>
-<p>我们的样式被破坏了，因为我们清除了文件中的默认 CSS<code>index.css</code>以输入我们的指令。</p>
-<h2 id="第-8-步-–-开始编写-Tailwind-CSS"><a href="#第-8-步-–-开始编写-Tailwind-CSS" class="headerlink" title="第 8 步 – 开始编写 Tailwind CSS"></a>第 8 步 – 开始编写 Tailwind CSS</h2><p>您可以开始使用 Tailwind 的实用程序类来设计您的内容。导航到您的<code>App.jsx</code>文件，您应该在下面看到：</p>
-<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/76851b1cc1551464.png"><br>App.jsx 文件的屏幕截图</p>
-<p>清除从第 9 行开始的 return 元素，并将其替换为下面的文本以测试您的 Tailwind 以了解它是否正常工作。输入这个：</p>
-<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">&lt;h1 className=<span class="string">&quot;text-3xl font-bold underline text-center&quot;</span>&gt;<span class="title class_">Hello</span> world!&lt;/h1&gt; </span><br></pre></td></tr></table></figure>
-
-<p>带有 tailwind css 类名的 h1 元素</p>
-<p>现在你有这个：</p>
-<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/5cdfdad997a933ec.png"></p>
-<p>将 h1 元素添加到 App.jsx 文件</p>
-<p>根据上图，<code>text-3xl font-bold text-red-500 underline text-center</code>已作为类名添加到<code>div</code>元素中。这是编写 Tailwind CSS 样式的标准。</p>
-<p>您可以<a href="https://tailwindcss.com/docs">在此处</a>了解有关 Tailwind 类名的更多信息。您的浏览器应该会自动更新。</p>
-<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/c9328d36aa83403f.png"></p>
-<p>添加h1元素后的网页截图</p>
-<p>您现在可以开始构建您的 React 项目并使用 Tailwind CSS 设置它们的样式。</p>
+    <title>给表弟搭建一个chatGPT环境</title>
+    <url>/shuai/</url>
+    <content><![CDATA[<h2 id="安装v2rayN"><a href="#安装v2rayN" class="headerlink" title="安装v2rayN"></a>安装v2rayN</h2><p>1.下载v2rayN<br>下载地址<a href="https://github.com/2dust/v2rayN/releases/tag/6.17">https://github.com/2dust/v2rayN/releases/tag/6.17</a><br>如图-选择<code>v2rayN-With-Core</code>进行下载<br><img src="https://s3.bmp.ovh/imgs/2023/03/14/75c3a38cbf6d733a.png"><br>2.解压并且安装v2rayN-With-Core</p>
+<p>打开<code>v2rayN.exe</code>,界面如图则为正常状态(节点在后面添加即可)<br><img src="https://s3.bmp.ovh/imgs/2023/03/14/b091d18bc0f7896c.png"></p>
+<h2 id="添加节点"><a href="#添加节点" class="headerlink" title="添加节点"></a>添加节点</h2><p>1.打开搭建好的<code>主力节点列表</code> <a href="https://shuai.songhang.repl.co/shuai.html">https://shuai.songhang.repl.co/shuai.html</a><br><code>备用节点列表</code><a href="https://awesomepen.oss-cn-beijing.aliyuncs.com/shuai.txt">https://awesomepen.oss-cn-beijing.aliyuncs.com/shuai.txt</a><br><img src="https://s3.bmp.ovh/imgs/2023/03/14/3c0903f5142ddd2b.png"></p>
+<p>点击复制，然后进入v2rayN客户端内进行粘贴即可<br>在v2rayN客户端里选中一个节点，点击回车，打开  <a href="https://youtube.com/">https://youtube.com</a> 验证是否可以正常显示页面</p>
+<h2 id="使用chatGPT"><a href="#使用chatGPT" class="headerlink" title="使用chatGPT"></a>使用chatGPT</h2><p>1.打开 <a href="https://chat.openai.com/">https://chat.openai.com/</a><br>2.点击<code>login</code>进行登录操作<br>3.输入账号密码进入<br>4.输入关键词开始使用<br><img src="https://s3.bmp.ovh/imgs/2023/03/14/d98b0ea78cf4641d.png"></p>
 <h2 id="🚀-关于我"><a href="#🚀-关于我" class="headerlink" title="🚀 关于我"></a>🚀 关于我</h2><p><a href="https://github.com/songhang666">戳</a><br>👩‍💻 🧠👯‍♀️🤔 💬 📫😄 ⚡️ </p>
 ]]></content>
       <categories>
-        <category>React.js</category>
+        <category>deploy</category>
       </categories>
       <tags>
-        <tag>React.js</tag>
+        <tag>deploy</tag>
       </tags>
   </entry>
   <entry>
@@ -774,6 +702,95 @@
       </categories>
       <tags>
         <tag>css</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Vite+Tailwind CSS创建一个react应用</title>
+    <url>/vite-react/</url>
+    <content><![CDATA[<h2 id="为什么使用Vite"><a href="#为什么使用Vite" class="headerlink" title="为什么使用Vite"></a>为什么使用<code>Vite</code></h2><p>大多数开发人员默认将Create React App (CRA)作为构建工具，用于在 React 中创建新项目并设置开发服务器。它提供了无需任何配置的构建设置。</p>
+<p><code>Create React App</code> 在运行在 <code>webpack</code> 上，它在提供服务之前捆绑了整个应用程序。因此，在大型代码库中，应用程序运行需要更多时间，并且文件更改反映在<code>热更新HMR</code>上需要很长时间。</p>
+<p>不同与 <code>CRA</code> ,<code>Vite</code> 不会在提供服务之前构建整个应用程序。它将应用程序模块分为两部分：依赖项和源代码。</p>
+<p>依赖项使用<code>esbuild</code> （用 <code>Go</code> 语言编写）预先捆绑，比基于 JavaScript 的捆绑器快 <code>10 到 100 倍</code>；由于依赖关系不会改变，它们也可以被缓存，这样就可以完全跳过预捆绑。</p>
+<p>源代码通过原生 ESM提供：源代码通常包含需要转换的非纯 JavaScript（例如 JSX、CSS），但并非所有都需要同时加载。所需的代码根据浏览器路由（基于路由的代码拆分）得到服务。</p>
+<p>这些差异导致使用 Vite 初始化、更新和构建 React 应用程序时体验更快。</p>
+<h2 id="第-1-步-–-创建您的项目文件夹"><a href="#第-1-步-–-创建您的项目文件夹" class="headerlink" title="第 1 步 – 创建您的项目文件夹"></a>第 1 步 – 创建您的项目文件夹</h2><p>打开您的终端，然后导航到您要构建项目的文件夹——例如 Desktop。在终端中输入以下命令，然后<code>enter</code>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm create vite@latest your-project-name -- --template react</span><br></pre></td></tr></table></figure>
+
+<p>上面的命令将创建您的项目文件夹。 ‌</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/40581923c83d6942.png"></p>
+<p><code>your-project-name</code>应该替换为您的项目名称。我的项目名称是<code>food-app</code></p>
+<p>‌请注意，我们曾经<code>-- --template react</code>指定我们正在使用 Vite 构建 React 应用程序。</p>
+<h2 id="第-2-步-–-进入到项目文件夹"><a href="#第-2-步-–-进入到项目文件夹" class="headerlink" title="第 2 步 – 进入到项目文件夹"></a>第 2 步 – 进入到项目文件夹</h2><p>在您的终端中输入以下命令，然后<code>enter</code>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> food-app</span><br></pre></td></tr></table></figure>
+
+<p>‌此命令将导航到您的项目文件夹。你应该有这个：</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/7c6440ab6eafa145.png"></p>
+<p>在终端中输入“cd food-app”以导航到“food-app”文件夹</p>
+<h2 id="第-3-步-–-安装-Tailwind-CSS-和其他依赖项"><a href="#第-3-步-–-安装-Tailwind-CSS-和其他依赖项" class="headerlink" title="第 3 步 – 安装 Tailwind CSS 和其他依赖项"></a><strong>第 3 步 – 安装 Tailwind CSS 和其他依赖项</strong></h2><p>在您的终端中输入以下命令，然后<code>enter</code>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install -D tailwindcss postcss autoprefixer</span><br></pre></td></tr></table></figure>
+
+<p>输入此命令以安装 tailwindcss、postcss 和 autoprefixer 依赖项</p>
+<p>此命令将安装以下内容：</p>
+<ul>
+<li>Tailwind CSS 框架</li>
+<li>Post CSS，它提供插件来执行不同的功能，例如 Vanilla CSS 中的前缀</li>
+<li>Autoprefixer，这是一个 PostCSS 插件，用于解析 CSS 并将前缀添加到 CSS 规则。</li>
+</ul>
+<p>您的文件夹在 VSCode 中应该如下所示：‌</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/98a0e9c231c2a6e5.png"></p>
+<p>确认您的 ‌ 中有以下<code>package.json</code>：</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/ae80c713114cd58f.png"></p>
+<p>请注意第 19 - 21 行的 autoprefixer、postcss 和 tailwindcss 依赖项。当您阅读本文时，版本号可能已更改。</p>
+<h2 id="第-4-步-–-生成配置文件"><a href="#第-4-步-–-生成配置文件" class="headerlink" title="第 4 步 – 生成配置文件"></a>第 4 步 – 生成配置文件</h2><p>在您的终端中输入以下命令，然后<code>enter</code>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npx tailwindcss init -p</span><br></pre></td></tr></table></figure>
+
+<p>此命令将生成 tailwindcss 配置文件</p>
+<p>此命令生成<code>tailwind.config.cjs</code>配置<code>postcss.config.cjs</code>文件，也称为配置文件。它们帮助您与项目互动并自定义所有内容。</p>
+<h2 id="第-5-步-–-配置-源路径"><a href="#第-5-步-–-配置-源路径" class="headerlink" title="第 5 步 – 配置 源路径"></a>第 5 步 – 配置 源路径</h2><p>将路径添加到文件中的所有模板文件<code>tailwind.config.cjs</code>。模板文件包括 HTML 模板、JavaScript 组件和其他包含 Tailwind 类名称的源文件。这是为了确保为相应的元素生成 vanilla CSS。</p>
+<p>你<code>tailwind.config.cjs</code>现在看起来像这样：</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/bdf9d32420e3b4f1.png"></p>
+<p>当前名为 tailwind.config.cjs 的配置文件，它包含 module.export 对象以使用内容、主题和插件等属性自定义 tailwind</p>
+<p>将其添加到您的内容部分。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="string">&quot;./index.html&quot;</span>,</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="string">&quot;./src/**/*.&#123;js,ts,jsx,tsx&#125;&quot;</span>,</span><br></pre></td></tr></table></figure>
+
+<p>添加到 content 属性的字符串以逗号分隔</p>
+<p>所以你的文件现在应该是这样的：</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/ba5a24028a16d315.png"><br>更新内容属性后的配置文件</p>
+<h2 id="第-6-步-–-将-Tailwind-指令添加到您的-CSS"><a href="#第-6-步-–-将-Tailwind-指令添加到您的-CSS" class="headerlink" title="第 6 步 – 将 Tailwind 指令添加到您的 CSS"></a><strong>第 6 步 – 将 Tailwind 指令添加到您的 CSS</strong></h2><p>Tailwind 指令是自定义的特定于 Tailwind 的语句，用于指示 CSS 如何运行。您需要为 Tailwind 的三个层添加指令。</p>
+<p><code>@tailwind base</code>注入Tailwind的基础样式和插件注册的基础样式，<code>@tailwind components</code>注入Tailwind的组件类和插件注册的组件类，同时<code>@tailwind utilities</code>注入Tailwind的实用类和插件注册的实用类。</p>
+<p>将以下语句添加到您的<code>./src/index.css</code>文件中：</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="keyword">@tailwind</span> base;</span><br><span class="line"><span class="keyword">@tailwind</span> components;</span><br><span class="line"><span class="keyword">@tailwind</span> utilities;</span><br></pre></td></tr></table></figure>
+
+<p>添加到 index.css 文件的三个指令 - @tailwind base、@tailwind components 和 @tailwind utilities</p>
+<p>您的<code>index.css</code>文件包含一些默认样式。您可以清除所有内容并粘贴上面的三行指令。</p>
+<h2 id="第-7-步-–-启动您的-Vite-服务器"><a href="#第-7-步-–-启动您的-Vite-服务器" class="headerlink" title="第 7 步 – 启动您的 Vite 服务器"></a>第 7 步 – 启动您的 Vite 服务器</h2><p><code>npm run dev</code>使用终端中的命令运行构建过程。您应该在终端中收到以下消息：</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/89fa9667e140b0c2.png"></p>
+<p>运行提供本地主机链接、网络和帮助的 Vite 服务器后收到的消息。</p>
+<p>按住<code>ctrl</code>键并单击本地的链接 – 这里是 <a href="http://127.0.0.1:5174。如果您这样做，它将在您的浏览器中打开一个新选项卡。">http://127.0.0.1:5174。如果您这样做，它将在您的浏览器中打开一个新选项卡。</a></p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/b55a2168310cc4a0.png"></p>
+<p>首次运行时的网页截图</p>
+<p>我们的样式被破坏了，因为我们清除了文件中的默认 CSS<code>index.css</code>以输入我们的指令。</p>
+<h2 id="第-8-步-–-开始编写-Tailwind-CSS"><a href="#第-8-步-–-开始编写-Tailwind-CSS" class="headerlink" title="第 8 步 – 开始编写 Tailwind CSS"></a>第 8 步 – 开始编写 Tailwind CSS</h2><p>您可以开始使用 Tailwind 的实用程序类来设计您的内容。导航到您的<code>App.jsx</code>文件，您应该在下面看到：</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/76851b1cc1551464.png"><br>App.jsx 文件的屏幕截图</p>
+<p>清除从第 9 行开始的 return 元素，并将其替换为下面的文本以测试您的 Tailwind 以了解它是否正常工作。输入这个：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">&lt;h1 className=<span class="string">&quot;text-3xl font-bold underline text-center&quot;</span>&gt;<span class="title class_">Hello</span> world!&lt;/h1&gt; </span><br></pre></td></tr></table></figure>
+
+<p>带有 tailwind css 类名的 h1 元素</p>
+<p>现在你有这个：</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/5cdfdad997a933ec.png"></p>
+<p>将 h1 元素添加到 App.jsx 文件</p>
+<p>根据上图，<code>text-3xl font-bold text-red-500 underline text-center</code>已作为类名添加到<code>div</code>元素中。这是编写 Tailwind CSS 样式的标准。</p>
+<p>您可以<a href="https://tailwindcss.com/docs">在此处</a>了解有关 Tailwind 类名的更多信息。您的浏览器应该会自动更新。</p>
+<p><img src="https://s3.bmp.ovh/imgs/2023/03/08/c9328d36aa83403f.png"></p>
+<p>添加h1元素后的网页截图</p>
+<p>您现在可以开始构建您的 React 项目并使用 Tailwind CSS 设置它们的样式。</p>
+<h2 id="🚀-关于我"><a href="#🚀-关于我" class="headerlink" title="🚀 关于我"></a>🚀 关于我</h2><p><a href="https://github.com/songhang666">戳</a><br>👩‍💻 🧠👯‍♀️🤔 💬 📫😄 ⚡️ </p>
+]]></content>
+      <categories>
+        <category>React.js</category>
+      </categories>
+      <tags>
+        <tag>React.js</tag>
       </tags>
   </entry>
 </search>
